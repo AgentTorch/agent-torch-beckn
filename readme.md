@@ -1,92 +1,51 @@
-# Mapping the Beckn Protocol to AgentTorch
+# Solar Network Model
 
-## Beckn Architecture
+## Outline
 
-The core components of the Beckn Protocol include:
+This model simulates a solar network in which households can decide to either buy solar
+panels and act as providers (BPPs) of clean energy, or decide to use the energy provided
+by other providers instead of installing solar panels themselves (BAPs).
 
-### 1. Network Participants
+The substeps are defined as follows, in the given order:
 
-- **BAP (Beckn Application Provider)**: Client-side applications
-- **BPP (Beckn Provider Platform)**: Provider-side platforms
-- **BG (Beckn Gateway)**: Intermediary for discovery and communication
+##### `search`/`select`/`order`
 
-### 2. Core Schema
+BAPs check their current resource level (here, the energy required for a month), and then
+find the closest BPP that can provide that much energy.
 
-- **Catalog**: Collection of items or services offered by a provider
-- **Item**: Individual product or service
-- **Order**: Transaction details
-- **Fulfillment**: Delivery or service execution details
-- **Rating**: Feedback mechanism
+They then select the BPP, and place an order for the same.
 
-### 3. Operations
+##### `confirm`/`fulfill`
 
-- **search**: Discover products or services
-- **select**: Choose specific items to order
-- **init**: Initiate an order
-- **confirm**: Finalize a transaction
-- **track**: Monitor order status
-- **cancel**: Cancel an order
-- **update**: Modify order/transaction details
-- **rating**: Provide feedback
-- **support**: Request assistance
+BPPs reduce their availability based on the incoming orders, and confirm the orders they
+can fulfill.
 
-## AgentTorch Architecture
+They then fulfill the order by providing energy to the BAP.
 
-Please see the
-[architecture document](https://github.com/AgentTorch/AgentTorch/blob/master/docs/architecture.md)
-for AgentTorch.
+##### `pay`
 
-## Mapping
+The BAP deducts the amount to pay from the wallet, and the BPP adds that amount to their
+revenue.
 
-### 1. Network Participants as AgentTorch Agents
+##### `restock`
 
-BAP, BPP, and BG will be considered agents, that interact with each other in the
-simulation.
+The BPPs replenish the available energy based on the sizes of their solar panel
+installations. This makes use of several assumptions:
 
-- **BAP (Beckn Application Provider)**
+1. Flat roofs generate ~11k MWh of AC electricty per roof, per year.
+2. Sloped roofs' generation varies based on the direction they are facing, but it can be
+   assumed to be ~7k MWh of AC electricity per roof, per year.
 
-  - intent
-  - current_order
-  - items_ordered
-  - feedback_provided
-  - requests_made
-  - money_spent
-
-- **BPP (Beckn Provider Platform)**
-
-  - network_traffic
-  - revenue_earned
-  - search_to_select_to_order
-  - cancelled_orders
-
-- **BG (Beckn Gateway)**
-  - (object)
-
-### 2. Core Schema as AgentTorch Objects
-
-Catalog, Item, Order, Fulfillment, and Rating will be considered as objects.
-These objects encapsulate the data structures defined in the Beckn Protocol.
-
-### 3. Operations as AgentTorch Substeps
-
-Each Beckn action (search, select, init, etc.) is mapped to an AgentTorch
-substep, that is executed to move the simulation forward.
-
-### 4. Beckn Network as AgentTorch Network
-
-The BAP-Gateway-BPP network is structured
-[as shown](https://github.com/beckn/beckn-onix/blob/main/docs/user_guide.md#sample-deployment-diagram).
-
-This will be represented in AgentTorch using a pair of heterogeneous
-`agent_object` networks, of the BAPs and BGs, as well as the BPPs and BGs.
+> These numbers are wildly approximated based on data from Google's
+> [Project Sunroof](https://sunroof.withgoogle.com/), and are only for demo purposes.
 
 ---
 
 > [!NOTE]
 >
-> All the Beckn operations are asynchronous by definition. This means that when
-> a `select` API call is made by a BAP to a BPP, the BPP will only respond to
-> the BAP with an acknowledgement of the received request. The actual response
-> will be sent back in a `on_select` API call from the BPP to the BAP. However,
-> for simplicity, we will assume that the API calls are synchronous in the
-> simulation.
+> The following improvements can be made to this model to make it more useful:
+>
+> - Add a BPP property, `capital_expense`, which keeps track of the initial cost of
+>   installing a solar panel.
+> - Allow BAPs to build positive or negative opinions of solar panels, which lead to them
+>   buying their own solar panels, or not placing orders at all.

@@ -13,34 +13,6 @@ from agent_torch.core.substep import (
 from .utils import read_var
 
 
-@Registry.register_substep("get_route", "observation")
-class GetRoute(SubstepObservation):
-    def __init__(self, config, input_variables, output_variables, arguments):
-        super().__init__(config, input_variables, output_variables, arguments)
-
-    def forward(self, state):
-        bap_pos = read_var(state, self.input_variables["bap_pos"])
-        bpp_pos = read_var(state, self.input_variables["bpp_pos"])
-        order_bap_id = read_var(state, self.input_variables["order_bap_id"])
-        order_bpp_id = read_var(state, self.input_variables["order_bpp_id"])
-        order_status = read_var(state, self.input_variables["order_status"])
-
-        update_mask = torch.logical_or(order_status == 1, order_status == 2)
-        involved_baps = order_bap_id[update_mask].int()
-        involved_bpps = order_bpp_id[update_mask].int()
-
-        bap_locs = bap_pos[involved_baps]
-        bpp_locs = bpp_pos[involved_bpps]
-        distances = bpp_locs - bap_locs
-
-        return {
-            "distances": distances,
-            "involved_baps": involved_baps,
-            "involved_bpps": involved_bpps,
-            "orders_to_update": update_mask,
-        }
-
-
 @Registry.register_substep("consume_service", "policy")
 class ConsumeService(SubstepAction):
     def __init__(self, config, input_variables, output_variables, arguments):
@@ -50,7 +22,6 @@ class ConsumeService(SubstepAction):
 
     def forward(self, state, observation):
         return {
-            "movement": observation["distances"] * self.speed,
             "service_progress": self.service_rate,
             "involved_baps": observation["involved_baps"],
             "involved_bpps": observation["involved_bpps"],
@@ -58,18 +29,16 @@ class ConsumeService(SubstepAction):
         }
 
 
-@Registry.register_substep("update_positions_and_resources", "transition")
-class UpdatePositionsAndResources(SubstepTransition):
+@Registry.register_substep("update_resources", "transition")
+class UpdateResources(SubstepTransition):
     def __init__(self, config, input_variables, output_variables, arguments):
         super().__init__(config, input_variables, output_variables, arguments)
 
     def forward(self, state, action):
-        bap_pos = read_var(state, self.input_variables["bap_pos"])
         bap_res = read_var(state, self.input_variables["bap_res"])
         bpp_cap = read_var(state, self.input_variables["bpp_cap"])
         order_status = read_var(state, self.input_variables["order_status"])
-        movement, service_progress, involved_baps, involved_bpps, orders_to_update = (
-            action["bap"]["movement"],
+        service_progress, involved_baps, involved_bpps, orders_to_update = (
             action["bap"]["service_progress"],
             action["bap"]["involved_baps"],
             action["bap"]["involved_bpps"],

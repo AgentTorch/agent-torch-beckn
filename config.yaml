@@ -6,8 +6,6 @@ simulation_metadata:
   calibration: false
   visualize: true
 
-  max_x: 1000
-  max_y: 1000
   num_bap: 100
   num_bpp: 20
   num_bg: 1
@@ -47,30 +45,24 @@ state:
                   - ${state.agents.bap.number}
                   - 1
                 initialization_function: null
-        coordinates:
-          name: 'Position'
+        position:
+          name: 'Street Number'
           learnable: false
           shape:
             - ${state.agents.bap.number}
-            - 2
+            - 1
           dtype: 'float'
           initialization_function:
-            generator: 'random_float'
+            generator: 'read_from_file'
             arguments:
-              lower_limit:
+              file_name:
                 learnable: false
                 shape:
                   - 1
-                value: 0
+                value: ${simulation_metadata.bap_streets_file}
                 initialization_function: null
-              upper_limit:
-                learnable: false
-                shape:
-                  - 1
-                value: ${simulation_metadata.max_x}
-                initialization_function: null
-        resource_level:
-          name: 'Resource Level'
+        resource_demand:
+          name: 'Demand for the Resource'
           learnable: false
           shape:
             - ${state.agents.bap.number}
@@ -82,14 +74,14 @@ state:
               lower_limit:
                 learnable: false
                 shape:
-                  - 1
+                  - 420 # kWh
                 value: 0
                 initialization_function: null
               upper_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 100
+                value: 1313 # kWh
                 initialization_function: null
         current_order:
           name: 'Current Order'
@@ -108,19 +100,13 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'random_float'
+            generator: 'read_file'
             arguments:
-              lower_limit:
+              file_name:
                 learnable: false
                 shape:
                   - 1
-                value: 100
-                initialization_function: null
-              upper_limit:
-                learnable: false
-                shape:
-                  - 1
-                value: 1000
+                value: ${simulation_metadata.bap_wallets_file}
                 initialization_function: null
 
     bpp:
@@ -144,27 +130,21 @@ state:
                   - ${state.agents.bpp.number}
                   - 1
                 initialization_function: null
-        coordinates:
-          name: 'Position'
+        position:
+          name: 'Street Number'
           learnable: false
           shape:
             - ${state.agents.bpp.number}
-            - 2
+            - 1
           dtype: 'float'
           initialization_function:
-            generator: 'random_float'
+            generator: 'read_from_file'
             arguments:
-              lower_limit:
+              file_name:
                 learnable: false
                 shape:
                   - 1
-                value: 0
-                initialization_function: null
-              upper_limit:
-                learnable: false
-                shape:
-                  - 1
-                value: ${simulation_metadata.max_x}
+                value: ${simulation_metadata.bpp_streets_file}
                 initialization_function: null
         revenue:
           name: 'Revenue Earned'
@@ -241,24 +221,6 @@ state:
                   - 1
                 value: 10
                 initialization_function: null
-        rating:
-          name: 'Service Rating'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
-          dtype: 'float'
-          value: 0
-          initialization_function: null
-        num_ratings:
-          name: 'Number of Ratings'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
-          dtype: 'int'
-          value: 0
-          initialization_function: null
 
     bg:
       number: ${simulation_metadata.num_bg}
@@ -352,8 +314,8 @@ state:
 
 substeps:
   '0':
-    name: 'Search'
-    description: 'BAP searches for available BPPs'
+    name: 'Search and Select'
+    description: 'Search and select an appropriate BPP'
     active_agents:
       - 'bap'
     observation:
@@ -362,8 +324,8 @@ substeps:
           generator: 'FindNearbyBPPs'
           arguments: null
           input_variables:
-            bap_positions: 'agents/bap/coordinates'
-            bpp_positions: 'agents/bpp/coordinates'
+            bap_positions: 'agents/bap/position'
+            bpp_positions: 'agents/bpp/position'
           output_variables:
             - distances
             - mask
@@ -375,7 +337,7 @@ substeps:
           input_variables:
             bpp_prices: 'agents/bpp/price'
             bpp_capacity: 'agents/bpp/available_capacity'
-            resource_level: 'agents/bap/resource_level'
+            resource_demand: 'agents/bap/resource_demand'
           output_variables:
             - selected_bpps
     transition:
@@ -384,7 +346,7 @@ substeps:
         arguments: null
         input_variables:
           bap_id: 'agents/bap/id'
-          resource_level: 'agents/bap/resource_level'
+          resource_demand: 'agents/bap/resource_demand'
           last_order_id: 'environment/last_order_id'
           order_bap_id: 'objects/order/bap_id'
           order_bpp_id: 'objects/order/bpp_id'
@@ -435,47 +397,26 @@ substeps:
     description: 'BAP receives service from BPP'
     active_agents:
       - 'bap'
-    observation:
-      bap:
-        get_route:
-          generator: 'GetRoute'
-          arguments: null
-          input_variables:
-            bap_pos: 'agents/bap/coordinates'
-            bpp_pos: 'agents/bpp/coordinates'
-            order_bap_id: 'objects/order/bap_id'
-            order_bpp_id: 'objects/order/bpp_id'
-            order_status: 'objects/order/status'
-          output_variables:
-            - distances
-            - involved_baps
-            - involved_bpps
-            - orders_to_update
+    observation: null
     policy:
       bap:
         consume_service:
           generator: 'ConsumeService'
           arguments: null
           input_variables:
-            bap_pos: 'agents/bap/coordinates'
-            bap_res: 'agents/bap/resource_level'
+            bap_res: 'agents/bap/resource_demand'
           output_variables:
-            - movement
             - service_progress
             - involved_baps
             - orders_to_update
     transition:
-      update_positions_and_resources:
-        generator: 'UpdatePositionsAndResources'
+      update_resources:
+        generator: 'UpdateResources'
         arguments: null
         input_variables:
-          bap_pos: 'agents/bap/coordinates'
-          bap_res: 'agents/bap/resource_level'
           bpp_cap: 'agents/bpp/available_capacity'
           order_status: 'objects/order/status'
         output_variables:
-          - bap_pos
-          - bap_res
           - bpp_cap
           - order_status
 
@@ -521,42 +462,26 @@ substeps:
           - bpp_revenue
 
   '4':
-    name: 'Rate'
-    description: 'BAP rates the service'
+    name: 'Restock'
+    description: 'BPP restocks the service'
     active_agents:
-      - 'bap'
-    observation:
-      bap:
-        get_service_experience:
-          generator: 'GetServiceExperience'
-          arguments: null
-          input_variables:
-            order_bap_id: 'objects/order/bap_id'
-            order_bpp_id: 'objects/order/bpp_id'
-            order_status: 'objects/order/status'
-          output_variables:
-            - involved_baps
-            - involved_bpps
+      - 'bpp'
+    observation: null
     policy:
       bap:
-        calculate_rating:
-          generator: 'CalculateRating'
+        calculate_availability:
+          generator: 'CalculateAvailability'
           arguments: null
           input_variables:
-            bpp_rating: 'agents/bpp/rating'
-            bpp_num_ratings: 'agents/bpp/num_ratings'
+            bpp_capacity: 'agents/bpp/available_capacity'
+            bpp_max_capacity: 'agents/bpp/max_capacity'
           output_variables:
-            - ratings_given
-            - num_ratings_given
-            - involved_baps
-            - involved_bpps
+            - bpp_capacity
     transition:
-      update_bpp_rating:
-        generator: 'UpdateBPPRating'
+      update_bpp_availability:
+        generator: 'UpdateBPPAvailability'
         arguments: null
         input_variables:
-          bpp_rating: 'agents/bpp/rating'
-          bpp_num_ratings: 'agents/bpp/num_ratings'
+          bpp_capacity: 'agents/bpp/available_capacity'
         output_variables:
-          - bpp_rating
-          - bpp_num_ratings
+          - bpp_capacity

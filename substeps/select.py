@@ -39,7 +39,7 @@ class SelectBPP(SubstepAction):
     def forward(self, state, observation):
         bpp_prices = read_var(state, self.input_variables["bpp_prices"])
         bpp_capacity = read_var(state, self.input_variables["bpp_capacity"])
-        resource_level = read_var(state, self.input_variables["resource_level"])
+        resource_demand = read_var(state, self.input_variables["resource_demand"])
 
         distances = observation["distances"]
         mask = observation["mask"]
@@ -83,18 +83,16 @@ class CreateOrder(SubstepTransition):
     def forward(self, state, action):
         selected_bpps = action["bap"]["selected_bpps"]
         bap_ids = read_var(state, self.input_variables["bap_id"])
-        resource_level = read_var(state, self.input_variables["resource_level"])
+        resource_demand = read_var(state, self.input_variables["resource_demand"])
         order_bap_id = read_var(state, self.input_variables["order_bap_id"])
         order_bpp_id = read_var(state, self.input_variables["order_bpp_id"])
         order_quantity = read_var(state, self.input_variables["order_quantity"])
         order_status = read_var(state, self.input_variables["order_status"])
         last_order_id = read_var(state, self.input_variables["last_order_id"])
 
-        quantity_needed = self.max_quantity - resource_level
-
         next_order_id = int((last_order_id + 1).item())
         for i, (bap_id, bpp_id, quantity) in enumerate(
-            zip(bap_ids, selected_bpps, quantity_needed)
+            zip(bap_ids, selected_bpps, resource_demand)
         ):
             order_bap_id[next_order_id + i] = bap_id
             order_bpp_id[next_order_id + i] = bpp_id
