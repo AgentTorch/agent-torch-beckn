@@ -53,13 +53,19 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'read_from_file'
+            generator: 'random_int'
             arguments:
-              file_name:
+              lower_limit:
                 learnable: false
                 shape:
                   - 1
-                value: ${simulation_metadata.bap_streets_file}
+                value: 1
+                initialization_function: null
+              upper_limit:
+                learnable: false
+                shape:
+                  - 1
+                value: 10
                 initialization_function: null
         resource_demand:
           name: 'Demand for the Resource'
@@ -74,8 +80,8 @@ state:
               lower_limit:
                 learnable: false
                 shape:
-                  - 420 # kWh
-                value: 0
+                  - 1
+                value: 420 # kWh
                 initialization_function: null
               upper_limit:
                 learnable: false
@@ -100,13 +106,19 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'read_file'
+            generator: 'random_float'
             arguments:
-              file_name:
+              lower_limit:
                 learnable: false
                 shape:
                   - 1
-                value: ${simulation_metadata.bap_wallets_file}
+                value: 100
+                initialization_function: null
+              upper_limit:
+                learnable: false
+                shape:
+                  - 1
+                value: 1000
                 initialization_function: null
 
     bpp:
@@ -138,13 +150,19 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'read_from_file'
+            generator: 'random_int'
             arguments:
-              file_name:
+              lower_limit:
                 learnable: false
                 shape:
                   - 1
-                value: ${simulation_metadata.bpp_streets_file}
+                value: 1
+                initialization_function: null
+              upper_limit:
+                learnable: false
+                shape:
+                  - 1
+                value: 10
                 initialization_function: null
         revenue:
           name: 'Revenue Earned'
@@ -169,13 +187,13 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 0.1
+                value: 50
                 initialization_function: null
               upper_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 0.5
+                value: 150
                 initialization_function: null
         max_capacity:
           name: 'Max Service Capacity'
@@ -468,7 +486,7 @@ substeps:
       - 'bpp'
     observation: null
     policy:
-      bap:
+      bpp:
         calculate_availability:
           generator: 'CalculateAvailability'
           arguments: null

@@ -47,12 +47,7 @@ class UpdateResources(SubstepTransition):
 
         # bap_id is same as index
         for i, bap_id in enumerate(involved_baps):
-            bap_pos[bap_id] += movement[i]
             bap_res[bap_id] += service_progress
-
-        bpp_cap[bpp_cap == 0] += random.randint(0, 2)
-        for i, bpp_id in enumerate(involved_bpps):
-            bpp_cap[bpp_id] += 1
 
         i = 0
         for j, should_update in enumerate(orders_to_update):
