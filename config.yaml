@@ -6,8 +6,8 @@ simulation_metadata:
   calibration: false
   visualize: true
 
-  num_bap: 100
-  num_bpp: 20
+  num_bap: 60
+  num_bpp: 40
   num_bg: 1
   max_orders: 1000
 
@@ -51,21 +51,15 @@ state:
           shape:
             - ${state.agents.bap.number}
             - 1
-          dtype: 'float'
+          dtype: 'int'
           initialization_function:
-            generator: 'random_int'
+            generator: 'read_from_file'
             arguments:
-              lower_limit:
+              file_path:
                 learnable: false
                 shape:
                   - 1
-                value: 1
-                initialization_function: null
-              upper_limit:
-                learnable: false
-                shape:
-                  - 1
-                value: 10
+                value: 'data/bap-pos.csv'
                 initialization_function: null
         resource_demand:
           name: 'Demand for the Resource'
@@ -148,21 +142,15 @@ state:
           shape:
             - ${state.agents.bpp.number}
             - 1
-          dtype: 'float'
+          dtype: 'int'
           initialization_function:
-            generator: 'random_int'
+            generator: 'read_from_file'
             arguments:
-              lower_limit:
+              file_path:
                 learnable: false
                 shape:
                   - 1
-                value: 1
-                initialization_function: null
-              upper_limit:
-                learnable: false
-                shape:
-                  - 1
-                value: 10
+                value: 'data/bpp-pos.csv'
                 initialization_function: null
         revenue:
           name: 'Revenue Earned'
@@ -203,19 +191,13 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'random_float'
+            generator: 'read_from_file'
             arguments:
-              lower_limit:
+              file_path:
                 learnable: false
                 shape:
                   - 1
-                value: 1
-                initialization_function: null
-              upper_limit:
-                learnable: false
-                shape:
-                  - 1
-                value: 10
+                value: 'data/bpp-cap.csv'
                 initialization_function: null
         available_capacity:
           name: 'Current Available Capacity'
@@ -231,13 +213,13 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 1
+                value: 2000
                 initialization_function: null
               upper_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 10
+                value: 4000
                 initialization_function: null
 
     bg:
