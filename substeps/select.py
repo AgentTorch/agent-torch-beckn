@@ -22,7 +22,7 @@ class FindNearbyBPPs(SubstepObservation):
         bap_positions = read_var(state, self.input_variables["bap_positions"])
         bpp_positions = read_var(state, self.input_variables["bpp_positions"])
 
-        distances = torch.cdist(bap_positions, bpp_positions)
+        distances = torch.cdist(bap_positions.float(), bpp_positions.float())
         nearby_mask = distances <= self.max_distance
 
         return {"distances": distances, "mask": nearby_mask}
@@ -50,7 +50,7 @@ class SelectBPP(SubstepAction):
         max_price = torch.max(bpp_prices)
         normalized_prices = bpp_prices / max_price
         max_capacity = torch.max(bpp_capacity)
-        normalized_capacity = bpp_capacity / max_capacity
+        normalized_capacity = - bpp_capacity / max_capacity
 
         # Calculate scores (lower is better)
         dimensionalize = (

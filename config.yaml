@@ -1,7 +1,7 @@
 simulation_metadata:
   device: 'cpu'
-  num_episodes: 7
-  num_steps_per_episode: 200
+  num_episodes: 1
+  num_steps_per_episode: 50
   num_substeps_per_step: 5
   calibration: false
   visualize: true
@@ -168,7 +168,7 @@ state:
           name: 'Revenue Earned'
           learnable: false
           shape:
-            - ${state.agents.bap.number}
+            - ${state.agents.bpp.number}
             - 1
           dtype: 'float'
           value: 0
@@ -187,13 +187,13 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 50
+                value: 0.25
                 initialization_function: null
               upper_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 150
+                value: 0.5
                 initialization_function: null
         max_capacity:
           name: 'Max Service Capacity'
@@ -201,9 +201,9 @@ state:
           shape:
             - ${state.agents.bpp.number}
             - 1
-          dtype: 'int'
+          dtype: 'float'
           initialization_function:
-            generator: 'random_int'
+            generator: 'random_float'
             arguments:
               lower_limit:
                 learnable: false
@@ -223,9 +223,9 @@ state:
           shape:
             - ${state.agents.bpp.number}
             - 1
-          dtype: 'int'
+          dtype: 'float'
           initialization_function:
-            generator: 'random_int'
+            generator: 'random_float'
             arguments:
               lower_limit:
                 learnable: false
@@ -415,26 +415,33 @@ substeps:
     description: 'BAP receives service from BPP'
     active_agents:
       - 'bap'
-    observation: null
+    observation:
+      bap: null
     policy:
       bap:
         consume_service:
           generator: 'ConsumeService'
           arguments: null
           input_variables:
+            order_bap_id: 'objects/order/bap_id'
+            order_bpp_id: 'objects/order/bpp_id'
+            order_status: 'objects/order/status'
             bap_res: 'agents/bap/resource_demand'
           output_variables:
             - service_progress
             - involved_baps
+            - involved_bpps
             - orders_to_update
     transition:
       update_resources:
         generator: 'UpdateResources'
         arguments: null
         input_variables:
+          bap_res: 'agents/bap/resource_demand'
           bpp_cap: 'agents/bpp/available_capacity'
           order_status: 'objects/order/status'
         output_variables:
+          - bap_res
           - bpp_cap
           - order_status
 
@@ -483,9 +490,20 @@ substeps:
     name: 'Restock'
     description: 'BPP restocks the service'
     active_agents:
+      - 'bap'
       - 'bpp'
-    observation: null
+    observation:
+      bap: null
+      bpp: null
     policy:
+      bap:
+        calculate_salary:
+          generator: 'CalculateSalary'
+          arguments: null
+          input_variables:
+            bap_wallet: 'agents/bap/wallet'
+          output_variables:
+            - bap_wallet
       bpp:
         calculate_availability:
           generator: 'CalculateAvailability'
@@ -496,10 +514,12 @@ substeps:
           output_variables:
             - bpp_capacity
     transition:
-      update_bpp_availability:
-        generator: 'UpdateBPPAvailability'
+      update_bpp_availability_and_bap_wallet:
+        generator: 'UpdateBPPAvailabilityAndBPPWallet'
         arguments: null
         input_variables:
+          bap_wallet: 'agents/bap/wallet'
           bpp_capacity: 'agents/bpp/available_capacity'
         output_variables:
+          - bap_wallet
           - bpp_capacity
