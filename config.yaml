@@ -6,10 +6,10 @@ simulation_metadata:
   calibration: false
   visualize: true
 
-  num_bap: 60
-  num_bpp: 40
+  num_bap: 900
+  num_bpp: 100
   num_bg: 1
-  max_orders: 1000
+  max_orders: 2000
 
 state:
   environment:
