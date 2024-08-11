@@ -1,13 +1,13 @@
 simulation_metadata:
   device: 'cpu'
   num_episodes: 1
-  num_steps_per_episode: 10
+  num_steps_per_episode: 50
   num_substeps_per_step: 5
   calibration: false
   visualize: true
 
-  num_bap: 94505
-  num_bpp: 40502
+  num_bap: 96383
+  num_bpp: 49354
   num_bg: 1
   max_orders: 99999
 
@@ -59,7 +59,7 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 'data/bap-pos.csv'
+                value: 'data/simulator/bap/position.csv'
                 initialization_function: null
         resource_demand:
           name: 'Demand for the Resource'
@@ -75,13 +75,13 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 85 # kWh
+                value: 420 # kWh
                 initialization_function: null
               upper_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 130 # kWh
+                value: 1313 # kWh
                 initialization_function: null
         current_order:
           name: 'Current Order'
@@ -100,13 +100,19 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'read_from_file'
+            generator: 'random_float'
             arguments:
-              file_path:
+              lower_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 'data/bap-inc.csv'
+                value: 100
+                initialization_function: null
+              upper_limit:
+                learnable: false
+                shape:
+                  - 1
+                value: 1000
                 initialization_function: null
 
     bpp:
@@ -144,7 +150,7 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 'data/bpp-pos.csv'
+                value: 'data/simulator/bpp/position.csv'
                 initialization_function: null
         revenue:
           name: 'Revenue Earned'
@@ -169,13 +175,13 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 0.20
+                value: 0.25
                 initialization_function: null
               upper_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 0.40
+                value: 0.5
                 initialization_function: null
         max_capacity:
           name: 'Max Service Capacity'
@@ -191,7 +197,7 @@ state:
                 learnable: false
                 shape:
                   - 1
-                value: 'data/bpp-cap.csv'
+                value: 'data/simulator/bpp/capacity.csv'
                 initialization_function: null
         available_capacity:
           name: 'Current Available Capacity'
@@ -201,13 +207,19 @@ state:
             - 1
           dtype: 'float'
           initialization_function:
-            generator: 'read_from_file'
+            generator: 'random_float'
             arguments:
-              file_path:
+              lower_limit:
                 learnable: false
                 shape:
                   - 1
-                value: 'data/bpp-cap.csv'
+                value: 2000
+                initialization_function: null
+              upper_limit:
+                learnable: false
+                shape:
+                  - 1
+                value: 4000
                 initialization_function: null
 
     bg:
