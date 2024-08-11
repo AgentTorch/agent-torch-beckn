@@ -1,51 +1,80 @@
-# Solar Network Model
+# AgentTorch-Beckn Solar Model
 
-## Outline
+## Overview
 
-This model simulates a solar network in which households can decide to either buy solar
-panels and act as providers (BPPs) of clean energy, or decide to use the energy provided
-by other providers instead of installing solar panels themselves (BAPs).
+AgentTorch is a differentiable learning framework that enables you to run simulations with
+over millions of autonomous agents. [Beckn](https://becknprotocol.io) is a protocol that
+enables the creation of open, peer-to-peer decentralized networks for pan-sector economic
+transactions.
 
-The substeps are defined as follows, in the given order:
+This model integrates Beckn with AgentTorch, to simulate a solar energy network in which
+households in a locality can decide to either buy solar panels and act as providers of
+solar energy, or decide to use the energy provided by other households instead of
+installing solar panels themselves.
 
-##### `search`/`select`/`order`
-
-BAPs check their current resource level (here, the energy required for a month), and then
-find the closest BPP that can provide that much energy.
-
-They then select the BPP, and place an order for the same.
-
-##### `confirm`/`fulfill`
-
-BPPs reduce their availability based on the incoming orders, and confirm the orders they
-can fulfill.
-
-They then fulfill the order by providing energy to the BAP.
-
-##### `pay`
-
-The BAP deducts the amount to pay from the wallet, and the BPP adds that amount to their
-revenue.
-
-##### `restock`
-
-The BPPs replenish the available energy based on the sizes of their solar panel
-installations. This makes use of several assumptions:
-
-1. Flat roofs generate ~11k MWh of AC electricty per roof, per year.
-2. Sloped roofs' generation varies based on the direction they are facing, but it can be
-   assumed to be ~7k MWh of AC electricity per roof, per year.
-
-> These numbers are wildly approximated based on data from Google's
-> [Project Sunroof](https://sunroof.withgoogle.com/), and are only for demo purposes.
-
----
-
-> [!NOTE]
+> ![A visualization of increase in net solar energy used per street](docs/visualization.gif)
 >
-> The following improvements can be made to this model to make it more useful:
->
-> - Add a BPP property, `capital_expense`, which keeps track of the initial cost of
->   installing a solar panel.
-> - Allow BAPs to build positive or negative opinions of solar panels, which lead to them
->   buying their own solar panels, or not placing orders at all.
+> A visualization of increase in net solar energy used per street.
+
+## Mapping Beckn Protocol to AgentTorch
+
+### 1. Network
+
+The participants in the Beckn network (providers, customers and gateways) are considered
+agents that interact with each other.
+
+### 2. Operations
+
+The following operations are simulated as substeps:
+
+1. a customer will `search` and `select` a provider
+2. the customer will `order` from the provider
+3. the provider will `fulfill` the order
+4. the customer will `pay` for the work done
+5. the provider will `restock` their solar energy
+
+Each of the substeps' code (apart from #5) is taken as-is from the
+[AgentTorch Beckn integration](https://github.com/AgentTorch/agent-torch-beckn).
+
+> Note that while Beckn's API calls are asynchronous, the simulation assumes they are
+> synchronous for simplicity.
+
+### 3. Data
+
+The data for this example model is currently sourced from various websites, mostly from
+[data.boston.gov](http://data.boston.gov/). However, the data should actually come from
+the Beckn Protocol's implementation of a solar network.
+
+## Running the Model
+
+To run the model, clone the github repository first:
+
+```python
+# git clone --depth 1 --branch solar https://github.com/AgentTorch/agent-torch-beckn solar-netowkr
+```
+
+Then, setup a virtual environment and install all dependencies:
+
+```python
+# cd solar-network/
+# python -m venv .venv/bin/activate
+# . .venv/bin/activate
+# pip install -r requirements.txt
+```
+
+Once that is done, you can edit the configuration ([`config.yaml`](../config.yaml)), and
+change the data used in the simulation by editing the simulation's data files
+([`data/simulator/{agent}/{property}.csv`](../data/simulator/)).
+
+Then, open Jupyter Lab and open the `main.ipynb` notebook, and run all the cells.
+
+```python
+# pip install jupyterlab
+# jupyter lab
+```
+
+## Todos
+
+- Add more visualizations (plots/graphs/heatmaps/etc.)
+- Improve the data used for the simulation, reduce the number of random values.
+- Include and run a sample beckn instance to pull fake data from.
