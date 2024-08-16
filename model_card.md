@@ -5,7 +5,7 @@
 - **Version:** 0.4.0
 - **Type:** Agent-based model (ABM) environment
 - **Framework:** AgentTorch v0.4.0
-- **Execution Mode:** Simulation with visualization
+- **Execution Mode:** Heuristic Agent
 
 ## Intended Use
 - **Primary Use:** Simulate a decentralized energy market with households producing and consuming solar energy
