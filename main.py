@@ -5,6 +5,7 @@ import argparse
 from tqdm import trange
 
 from agent_torch.core import Registry, Runner
+from agent_torch.core.visualize import GeoPlot
 from agent_torch.core.helpers import read_config, read_from_file
 from substeps import *
 from helpers import *
@@ -29,16 +30,23 @@ runner.init()
 
 print(":: preparing simulation...")
 
+state_trajectories = []
 for episode in trange(num_episodes, desc=f":: running episode", ncols=108):
     runner.reset()
 
-    for step in trange(
-        num_steps_per_episode,
-        desc=f":: executing substeps",
-        leave=False,
-        ncols=108,
-        ascii=True,
-    ):
+    for _ in trange(num_steps_per_episode, desc=f":: running steps", ncols=72):
         runner.step(1)
+    state_trajectories.append(runner.state_trajectory)
 
 print(":: execution completed")
+
+print(":: generating geoplot")
+
+plot = GeoPlot(
+  config, state_trajectories,
+  "data/roofs.geojson",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2MzllOTJmMy01YmUzLTQwZDQtOGMyYy04NDdlODUyYjc1MzYiLCJpZCI6MjM1NDMxLCJpYXQiOjE3MjM5ODc4ODZ9.CxqymuvZilCWP8dv01j-4634W7PQhcI_DuT-gfRS3dc"
+)
+plot.visualize("agents/bap/position", "agents/bap/wallet")
+
+print(":: geojson generated")

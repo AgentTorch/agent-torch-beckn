@@ -22,7 +22,7 @@ class FindNearbyBPPs(SubstepObservation):
         bap_positions = read_var(state, self.input_variables["bap_positions"])
         bpp_positions = read_var(state, self.input_variables["bpp_positions"])
 
-        distances = torch.cdist(bap_positions.float(), bpp_positions.float())
+        distances = torch.cdist(bap_positions, bpp_positions)
         nearby_mask = distances <= self.max_distance
 
         return {"distances": distances, "mask": nearby_mask}
