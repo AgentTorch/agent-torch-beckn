@@ -44,7 +44,6 @@ print(":: generating geoplot")
 
 plot = GeoPlot(
   config, state_trajectories,
-  "data/roofs.geojson",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2MzllOTJmMy01YmUzLTQwZDQtOGMyYy04NDdlODUyYjc1MzYiLCJpZCI6MjM1NDMxLCJpYXQiOjE3MjM5ODc4ODZ9.CxqymuvZilCWP8dv01j-4634W7PQhcI_DuT-gfRS3dc"
 )
 plot.visualize("agents/bap/position", "agents/bap/wallet")
