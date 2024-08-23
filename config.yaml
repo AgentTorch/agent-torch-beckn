@@ -6,8 +6,8 @@ simulation_metadata:
   calibration: false
   visualize: true
 
-  num_bap: 2411
-  num_bpp: 1033
+  num_bap: 8961
+  num_bpp: 3840
   num_bg: 1
   max_orders: 99999
 
