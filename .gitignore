@@ -1,0 +1,9 @@
+# .gitignore
+# tells git to ignore certain files
+
+cache/
+__pycache__/
+.ipynb_checkpoints/
+
+.venv/
+.env*
