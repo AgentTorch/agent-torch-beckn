@@ -20,10 +20,10 @@ You can run the simulation on your machine, with your own data, in just
 a few lines of code:
 
 ```py
-from agent_torch.core import create_from_template
+from agent_torch.core import load_from_template
 
-# create a simulation from a template.
-simulation = create_from_template(
+# load a simulation from a template.
+simulation = load_from_template(
   model = "./model",
   data = "./data",
   agents = {"bap": 8961, "bpp": 3840},
