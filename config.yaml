@@ -1,26 +1,23 @@
 simulation_metadata:
   device: 'cpu'
   num_episodes: 1
-  num_steps_per_episode: 80
+  num_steps_per_episode: 2
   num_substeps_per_step: 5
   calibration: false
   visualize: true
+  cesium_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2MzllOTJmMy01YmUzLTQwZDQtOGMyYy04NDdlODUyYjc1MzYiLCJpZCI6MjM1NDMxLCJpYXQiOjE3MjM5ODc4ODZ9.CxqymuvZilCWP8dv01j-4634W7PQhcI_DuT-gfRS3dc'
 
   num_bap: 8961
   num_bpp: 3840
   num_bg: 1
-  max_orders: 99999
+  num_order: 99999
 
 state:
   environment:
     last_order_id:
-      name: 'Last Created Order'
-      learnable: false
-      shape:
-        - 1
+      shape: [1]
       dtype: 'int'
       value: -1
-      initialization_function: null
   network: null
 
   agents:
@@ -28,277 +25,151 @@ state:
       number: ${simulation_metadata.num_bap}
       properties:
         id:
-          name: 'ID'
-          learnable: false
-          shape:
-            - ${state.agents.bap.number}
-            - 1
-          dtype: 'int'
+          shape: [1]
+          dype: 'int'
           initialization_function:
             generator: 'generate_ids'
             arguments:
               shape:
-                learnable: false
-                shape:
-                  - 2
+                shape: [2]
                 value:
                   - ${state.agents.bap.number}
                   - 1
-                initialization_function: null
         position:
-          name: 'Latitude Longitude'
-          learnable: false
-          shape:
-            - ${state.agents.bap.number}
-            - 2
+          shape: [2]
           dtype: 'int'
           initialization_function:
             generator: 'read_from_file'
             arguments:
               file_path:
-                learnable: false
-                shape:
-                  - 1
-                value: 'data/simulator/bap/position.csv'
-                initialization_function: null
+                value: './data/simulator/bap/position.csv'
         resource_demand:
-          name: 'Demand for the Resource'
-          learnable: false
-          shape:
-            - ${state.agents.bap.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           initialization_function:
             generator: 'random_float'
             arguments:
               lower_limit:
-                learnable: false
-                shape:
-                  - 1
                 value: 7.42
-                initialization_function: null
               upper_limit:
-                learnable: false
-                shape:
-                  - 1
                 value: 1269.24
-                initialization_function: null
         current_order:
-          name: 'Current Order'
-          learnable: false
-          shape:
-            - ${state.agents.bap.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           value: -1 # -1 indicates no active order
-          initialization_function: null
         wallet:
-          name: 'Available Money'
-          learnable: false
-          shape:
-            - ${state.agents.bap.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           initialization_function:
             generator: 'read_from_file'
             arguments:
               file_path:
-                learnable: false
-                shape:
-                  - 1
-                value: 'data/simulator/bap/income.csv'
-                initialization_function: null
+                value: './data/simulator/bap/income.csv'
 
     bpp:
       number: ${simulation_metadata.num_bpp}
       properties:
         id:
-          name: 'ID'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           initialization_function:
             generator: 'generate_ids'
             arguments:
               shape:
-                learnable: false
-                shape:
-                  - 2
+                shape: [2]
                 value:
                   - ${state.agents.bpp.number}
                   - 1
-                initialization_function: null
         position:
-          name: 'Latitude Longitude'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 2
+          shape: [2]
           dtype: 'float'
           initialization_function:
             generator: 'read_from_file'
             arguments:
               file_path:
-                learnable: false
-                shape:
-                  - 1
-                value: 'data/simulator/bpp/position.csv'
-                initialization_function: null
+                value: './data/simulator/bpp/position.csv'
         revenue:
-          name: 'Revenue Earned'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           value: 0
-          initialization_function: null
         price:
-          name: 'Service Price'
           learnable: true
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           initialization_function:
             generator: 'random_float'
             arguments:
               lower_limit:
-                learnable: false
-                shape:
-                  - 1
                 value: 0.25
-                initialization_function: null
               upper_limit:
-                learnable: false
-                shape:
-                  - 1
                 value: 0.45
-                initialization_function: null
         max_capacity:
-          name: 'Max Service Capacity'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           initialization_function:
             generator: 'read_from_file'
             arguments:
               file_path:
-                learnable: false
-                shape:
-                  - 1
-                value: 'data/simulator/bpp/capacity.csv'
-                initialization_function: null
+                value: './data/simulator/bpp/capacity.csv'
         available_capacity:
-          name: 'Current Available Capacity'
-          learnable: false
-          shape:
-            - ${state.agents.bpp.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           initialization_function:
             generator: 'read_from_file'
             arguments:
               file_path:
-                learnable: false
-                shape:
-                  - 1
-                value: 'data/simulator/bpp/capacity.csv'
-                initialization_function: null
+                value: './data/simulator/bpp/capacity.csv'
 
     bg:
       number: ${simulation_metadata.num_bg}
       properties:
         id:
-          name: 'ID'
-          learnable: false
-          shape:
-            - ${state.agents.bg.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           initialization_function:
             generator: 'generate_ids'
             arguments:
               shape:
-                learnable: false
-                shape:
-                  - 2
+                shape: [2]
                 value:
                   - ${state.agents.bg.number}
                   - 1
-                initialization_function: null
         network_traffic:
-          name: 'Network Traffic'
-          learnable: false
-          shape:
-            - ${state.agents.bg.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           value: 0
-          initialization_function: null
 
   objects:
     order:
-      number: ${simulation_metadata.max_orders}
+      number: ${simulation_metadata.num_order}
       properties:
         id:
-          name: 'ID'
-          learnable: false
-          shape:
-            - ${state.objects.order.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           initialization_function:
             generator: 'generate_ids'
             arguments:
               shape:
-                learnable: false
-                shape:
-                  - 2
+                shape: [2]
                 value:
                   - ${state.objects.order.number}
                   - 1
-                initialization_function: null
         bap_id:
-          name: 'BAP ID'
-          learnable: false
-          shape:
-            - ${state.objects.order.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           value: -1
-          initialization_function: null
         bpp_id:
-          name: 'BPP ID'
-          learnable: false
-          shape:
-            - ${state.objects.order.number}
-            - 1
+          shape: [1]
           dtype: 'int'
           value: -1
-          initialization_function: null
         quantity:
-          name: 'Service Quantity'
-          learnable: false
-          shape:
-            - ${state.objects.order.number}
-            - 1
+          shape: [1]
           dtype: 'float'
           value: -1
-          initialization_function: null
         status:
-          name: 'Order Status'
-          learnable: false
-          shape:
-            - ${state.objects.order.number}
-            - 1
+          shape: [1]
           dtype: 'int' # 0: Created, 1: Confirmed, 2: In Progress, 3: Completed, 4: Cancelled
           value: -1
-          initialization_function: null
 
 substeps:
   '0':
