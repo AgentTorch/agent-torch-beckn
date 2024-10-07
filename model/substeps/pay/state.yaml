@@ -1,0 +1,43 @@
+name: 'Pay'
+description: 'BAP pays for the service'
+active_agents:
+  - 'bap'
+observation:
+  bap:
+    get_order_details:
+      generator: 'GetOrderDetails'
+      arguments: null
+      input_variables:
+        order_bap_id: 'objects/order/bap_id'
+        order_bpp_id: 'objects/order/bpp_id'
+        order_bg_id: 'objects/order/bg_id'
+        order_status: 'objects/order/status'
+      output_variables:
+        - solar_details
+        - grid_details
+policy:
+  bap:
+    calculate_payment:
+      generator: 'CalculatePayment'
+      arguments: null
+      input_variables:
+        bpp_price: 'agents/bpp/price'
+        bg_charge: 'agents/bg/wheeling_charges'
+        bg_price: 'agents/bg/grid_price'
+        order_quantity: 'objects/order/quantity'
+      output_variables:
+        - payments_to_make
+        - solar_details
+        - grid_details
+transition:
+  update_wallets:
+    generator: 'UpdateWallets'
+    arguments: null
+    input_variables:
+      bap_solar_bill: 'agents/bap/solar_bill'
+      bap_grid_bill: 'agents/bap/grid_bill'
+      bpp_revenue: 'agents/bpp/revenue'
+    output_variables:
+      - bap_solar_bill
+      - bap_grid_bill
+      - bpp_revenue

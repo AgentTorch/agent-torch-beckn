@@ -1,0 +1,33 @@
+name: 'Fulfill'
+description: 'BAP receives service from BPP'
+active_agents:
+  - 'bap'
+observation:
+  bap: null
+policy:
+  bap:
+    consume_service:
+      generator: 'ConsumeService'
+      arguments: null
+      input_variables:
+        order_bap_id: 'objects/order/bap_id'
+        order_bpp_id: 'objects/order/bpp_id'
+        order_status: 'objects/order/status'
+        bap_res: 'agents/bap/resource_demand'
+      output_variables:
+        - service_progress
+        - involved_baps
+        - involved_bpps
+        - orders_to_update
+transition:
+  update_resources:
+    generator: 'UpdateResources'
+    arguments: null
+    input_variables:
+      bap_res: 'agents/bap/resource_demand'
+      bpp_cap: 'agents/bpp/availability'
+      order_status: 'objects/order/status'
+    output_variables:
+      - bap_res
+      - bpp_cap
+      - order_status

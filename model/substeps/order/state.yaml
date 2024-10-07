@@ -1,0 +1,34 @@
+name: 'Confirm'
+description: 'BPP confirms the order'
+active_agents:
+  - 'bpp'
+observation:
+  bpp:
+    check_availability:
+      generator: 'CheckAvailability'
+      arguments: null
+      input_variables:
+        bpp_availability: 'agents/bpp/availability'
+      output_variables:
+        - is_available
+policy:
+  bpp:
+    confirm_order:
+      generator: 'ConfirmOrder'
+      arguments: null
+      input_variables: null
+      output_variables:
+        - order_confirmation
+transition:
+  update_order_status:
+    generator: 'UpdateOrderStatus'
+    arguments: null
+    input_variables:
+      bpp_availability: 'agents/bpp/availability'
+      bap_demand: 'agents/bap/resource_demand'
+      order_bap_id: 'objects/order/bap_id'
+      order_bpp_id: 'objects/order/bpp_id'
+      order_status: 'objects/order/status'
+    output_variables:
+      - order_status
+      - bpp_availability

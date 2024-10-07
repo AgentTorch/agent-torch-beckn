@@ -1,0 +1,24 @@
+name: 'Apply'
+description: 'Apply stochasticity'
+active_agents:
+  - 'bpp'
+observation:
+  bpp: null
+policy:
+  bpp:
+    calculate_availability:
+      generator: 'CalculateAvailability'
+      arguments: null
+      input_variables:
+        bpp_availability: 'agents/bpp/availability'
+        bpp_max_capacity: 'agents/bpp/max_capacity'
+      output_variables:
+        - bpp_availability
+transition:
+  update_bpp_availability:
+    generator: 'UpdateBPPAvailability'
+    arguments: null
+    input_variables:
+      bpp_availability: 'agents/bpp/availability'
+    output_variables:
+      - bpp_availability

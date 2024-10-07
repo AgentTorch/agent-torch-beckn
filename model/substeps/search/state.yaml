@@ -1,0 +1,47 @@
+name: 'Search and Select'
+description: 'Search and select an appropriate BPP'
+active_agents:
+  - 'bap'
+observation:
+  bap:
+    find_nearby_bpps_and_bgs:
+      generator: 'FindNearbyBPPsAndBGs'
+      arguments: null
+      input_variables:
+        bap_positions: 'agents/bap/position'
+        bpp_positions: 'agents/bpp/position'
+        bg_positions: 'agents/bg/position'
+      output_variables:
+        - distances
+policy:
+  bap:
+    select_bpp:
+      generator: 'SelectBPPAndBG'
+      arguments: null
+      input_variables:
+        bpp_prices: 'agents/bpp/price'
+        bpp_availability: 'agents/bpp/availability'
+        bg_charges: 'agents/bg/wheeling_charges'
+        search_radius: 'environment/search_radius'
+      output_variables:
+        - selected_bpps
+        - selected_bgs
+transition:
+  create_order:
+    generator: 'CreateOrder'
+    arguments: null
+    input_variables:
+      bap_id: 'agents/bap/id'
+      resource_demand: 'agents/bap/resource_demand'
+      last_order_id: 'environment/last_order_id'
+      order_bap_id: 'objects/order/bap_id'
+      order_bpp_id: 'objects/order/bpp_id'
+      order_bg_id: 'objects/order/bg_id'
+      order_quantity: 'objects/order/quantity'
+      order_status: 'objects/order/status'
+    output_variables:
+      - order_bap_id
+      - order_bpp_id
+      - order_bg_id
+      - order_quantity
+      - order_status

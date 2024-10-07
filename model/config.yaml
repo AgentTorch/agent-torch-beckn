@@ -1,0 +1,213 @@
+simulation_metadata:
+  device: 'cpu'
+  num_episodes: 1
+  num_steps_per_episode: 3
+  num_substeps_per_step: 5
+  calibration: false
+  visualize: true
+  cesium_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2MzllOTJmMy01YmUzLTQwZDQtOGMyYy04NDdlODUyYjc1MzYiLCJpZCI6MjM1NDMxLCJpYXQiOjE3MjM5ODc4ODZ9.CxqymuvZilCWP8dv01j-4634W7PQhcI_DuT-gfRS3dc'
+
+  num_bap: 8961
+  num_bpp: 3840
+  num_bg: 3
+  num_order: 99999
+
+state:
+  environment:
+    last_order_id:
+      shape: [1]
+      dtype: 'int'
+      value: -1
+    search_radius:
+      shape: [1]
+      dtype: 'float'
+      value: 1 # km
+  network: null
+
+  agents:
+    bap:
+      number: ${simulation_metadata.num_bap}
+      properties:
+        id:
+          shape: [1]
+          dype: 'int'
+          initialization_function:
+            generator: 'generate_ids'
+            arguments:
+              shape:
+                shape: [2]
+                value:
+                  - ${state.agents.bap.number}
+                  - 1
+        position:
+          shape: [2]
+          dtype: 'int'
+          initialization_function:
+            generator: 'read_from_file'
+            arguments:
+              file_path:
+                value: './data/simulator/bap/position.csv'
+        resource_demand:
+          shape: [1]
+          dtype: 'float'
+          initialization_function:
+            generator: 'random_float'
+            arguments:
+              lower_limit:
+                value: 36.42
+              upper_limit:
+                value: 129.24
+        current_order:
+          shape: [1]
+          dtype: 'int'
+          value: -1 # -1 indicates no active order
+        grid_bill:
+          shape: [1]
+          dtype: 'float'
+          value: 0
+        solar_bill:
+          shape: [1]
+          dtype: 'float'
+          value: 0
+
+    bpp:
+      number: ${simulation_metadata.num_bpp}
+      properties:
+        id:
+          shape: [1]
+          dtype: 'int'
+          initialization_function:
+            generator: 'generate_ids'
+            arguments:
+              shape:
+                shape: [2]
+                value:
+                  - ${state.agents.bpp.number}
+                  - 1
+        position:
+          shape: [2]
+          dtype: 'float'
+          initialization_function:
+            generator: 'read_from_file'
+            arguments:
+              file_path:
+                value: './data/simulator/bpp/position.csv'
+        revenue:
+          shape: [1]
+          dtype: 'float'
+          value: 0
+        price:
+          learnable: true
+          shape: [1]
+          dtype: 'float'
+          initialization_function:
+            generator: 'random_float'
+            arguments:
+              lower_limit:
+                value: 0.25
+              upper_limit:
+                value: 0.45
+        max_capacity:
+          shape: [1]
+          dtype: 'float'
+          initialization_function:
+            generator: 'read_from_file'
+            arguments:
+              file_path:
+                value: './data/simulator/bpp/capacity.csv'
+        availability:
+          shape: [1]
+          dtype: 'float'
+          initialization_function:
+            generator: 'read_from_file'
+            arguments:
+              file_path:
+                value: './data/simulator/bpp/capacity.csv'
+
+    bg:
+      number: ${simulation_metadata.num_bg}
+      properties:
+        id:
+          shape: [1]
+          dtype: 'int'
+          initialization_function:
+            generator: 'generate_ids'
+            arguments:
+              shape:
+                shape: [2]
+                value:
+                  - ${state.agents.bg.number}
+                  - 1
+        position:
+          shape: [2]
+          dtype: 'int'
+          initialization_function:
+            generator: 'read_from_file'
+            arguments:
+              file_path:
+                value: './data/simulator/bg/position.csv'
+        wheeling_charges:
+          learnable: true
+          shape: [1]
+          dtype: 'float'
+          initialization_function:
+            generator: 'random_float'
+            arguments:
+              lower_limit:
+                value: 0.07
+              upper_limit:
+                value: 0.12
+        grid_price:
+          learnable: true
+          shape: [1]
+          dtype: 'float'
+          initialization_function:
+            generator: 'random_float'
+            arguments:
+              lower_limit:
+                value: 0.35
+              upper_limit:
+                value: 0.69
+
+  objects:
+    order:
+      number: ${simulation_metadata.num_order}
+      properties:
+        id:
+          shape: [1]
+          dtype: 'int'
+          initialization_function:
+            generator: 'generate_ids'
+            arguments:
+              shape:
+                shape: [2]
+                value:
+                  - ${state.objects.order.number}
+                  - 1
+        bap_id:
+          shape: [1]
+          dtype: 'int'
+          value: -1
+        bpp_id:
+          shape: [1]
+          dtype: 'int'
+          value: -1
+        bg_id:
+          shape: [1]
+          dtype: 'int'
+          value: -1
+        quantity:
+          shape: [1]
+          dtype: 'float'
+          value: -1
+        status:
+          shape: [1]
+          dtype: 'int' # 0: created, 1: confirmed, 2: in progress, 3: completed, 4: cancelled
+          value: -1
+
+substeps:
+  '0': './model/substeps/search'
+  '1': './model/substeps/order'
+  '2': './model/substeps/fulfill'
+  '3': './model/substeps/pay'
+  '4': './model/substeps/apply'
