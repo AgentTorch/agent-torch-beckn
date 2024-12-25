@@ -1,0 +1,1042 @@
+<!doctype html>
+<html>
+	<head>
+		<title>{title}</title>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+		<script src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js" async></script>
+		<link href="https://cdn.jsdelivr.net/gh/sindresorhus/github-markdown-css/github-markdown.css" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+		<style>
+			.content {
+				margin: 0;
+			}
+
+			.markdown-body {
+				font-family: 'Rubik', serif;
+				font-size: 12px;
+				min-width: 200px;
+				padding: 45px 10%;
+				margin: 0;
+			}
+
+			h1, h2, h3, h4, h5, h6 {
+				font-family: 'Zilla Slab', sans-serif;
+			}
+		</style>
+	</head>
+	<body class="content">
+		<article class="markdown-body"><h1 id="agent-based-model-for-community-solar-energy-networks-self-sufficiency-through-decentralized-trading">Agent-Based Model for Community Solar Energy Networks: Self-Sufficiency Through Decentralized Trading</h1>
+
+<h2 id="1-model-components-and-state-space">1. Model Components and State Space</h2>
+
+<h3 id="1-1-agent-classes-and-state-variables">1.1 Agent Classes and State Variables</h3>
+
+<h4 id="1-1-1-household-agent-h">1.1.1 Household Agent (<span class="math inline">\(H\)</span>)</h4>
+
+<p>Each household agent <span class="math inline">\(H_i\)</span> is characterized by the state vector:</p>
+<p><span class="math display">\[
+H_i = \{id_i, c_i, \mathbf{D}_i, S_i, \mathbf{G}_i, B_i(t), E_i(t), T_i(t), F_i, \alpha_i\}
+\]</span></p><p>where:</p>
+
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Domain</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><span class="math inline">\(id_i\)</span></td>
+<td><span class="math inline">\(\mathbb{N}\)</span></td>
+<td>Unique identifier</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(c_i\)</span></td>
+<td><span class="math inline">\(\mathbb{N}\)</span></td>
+<td>Community assignment</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\mathbf{D}_i\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^{24×365}\)</span></td>
+<td>Hourly energy demand profile for a year</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(S_i\)</span></td>
+<td><span class="math inline">\(\{0,1\}\)</span></td>
+<td>Solar installation indicator</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\mathbf{G}_i\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^{24×365}\)</span></td>
+<td>Hourly generation capacity profile</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(B_i(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Energy stored at time t</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(E_i(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Excess energy available for trading at time t</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(T_i(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Energy traded (bought/sold) at time t</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(F_i\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Financial capacity for solar investment</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\alpha_i\)</span></td>
+<td><span class="math inline">\([0,1]\)</span></td>
+<td>Solar adoption propensity</td>
+</tr>
+</tbody>
+</table>
+
+<h4 id="1-1-2-community-coordinator-c">1.1.2 Community Coordinator (<span class="math inline">\(C\)</span>)</h4>
+
+<p>Each community coordinator <span class="math inline">\(C_j\)</span> manages local energy distribution:</p>
+<p><span class="math display">\[
+C_j = \{id_j, \mathcal{H}_j, \mathcal{G}_j, \mathbf{P}_j(t), \mathbf{M}_j(t), \eta_j\}
+\]</span></p><p>where:</p>
+
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Domain</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><span class="math inline">\(id_j\)</span></td>
+<td><span class="math inline">\(\mathbb{N}\)</span></td>
+<td>Unique identifier</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\mathcal{H}_j\)</span></td>
+<td>Set</td>
+<td>Set of household agents</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\mathcal{G}_j\)</span></td>
+<td>Set</td>
+<td>Set of grid stations</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\mathbf{P}_j(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Community-wide power balance at time t</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\mathbf{M}_j(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Market clearing price at time t</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\eta_j\)</span></td>
+<td><span class="math inline">\([0,1]\)</span></td>
+<td>Distribution efficiency factor</td>
+</tr>
+</tbody>
+</table>
+
+<h4 id="1-1-3-grid-station-gamma">1.1.3 Grid Station (<span class="math inline">\(\Gamma\)</span>)</h4>
+
+<p>Each grid station <span class="math inline">\(\Gamma_k\)</span> represents a connection to the main power grid:</p>
+<p><span class="math display">\[
+\Gamma_k = \{id_k, \kappa_k, \lambda_k(t), \omega_k(t), \delta_k\}
+\]</span></p><p>where:</p>
+
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Domain</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><span class="math inline">\(id_k\)</span></td>
+<td><span class="math inline">\(\mathbb{N}\)</span></td>
+<td>Unique identifier</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\kappa_k\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Maximum supply capacity</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\lambda_k(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Dynamic pricing function</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\omega_k(t)\)</span></td>
+<td><span class="math inline">\(\mathbb{R}^+\)</span></td>
+<td>Current load</td>
+</tr>
+
+<tr>
+<td><span class="math inline">\(\delta_k\)</span></td>
+<td><span class="math inline">\([0,1]\)</span></td>
+<td>Grid reliability factor</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="2-system-dynamics-and-market-mechanisms">2. System Dynamics and Market Mechanisms</h2>
+
+<h3 id="2-1-energy-generation-and-consumption">2.1 Energy Generation and Consumption</h3>
+
+<h4 id="2-1-1-solar-energy-generation">2.1.1 Solar Energy Generation</h4>
+
+<p>For each household <span class="math inline">\(i\)</span> with solar installation (<span class="math inline">\(S_i = 1\)</span>), at time <span class="math inline">\(t\)</span>:</p>
+<p><span class="math display">\[
+G_i(t) = \eta_s \cdot A_i \cdot I(t) \cdot (1 - \epsilon_t)
+\]</span></p><p>where:</p>
+
+<ul>
+<li><span class="math inline">\(\eta_s\)</span> is the solar panel efficiency</li>
+<li><span class="math inline">\(A_i\)</span> is the installed panel area</li>
+<li><span class="math inline">\(I(t)\)</span> is the solar irradiance at time <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\epsilon_t\)</span> is the environmental loss factor</li>
+</ul>
+
+<h4 id="2-1-2-battery-storage-dynamics">2.1.2 Battery Storage Dynamics</h4>
+
+<p>The battery state of charge follows:</p>
+<p><span class="math display">\[
+B_i(t+1) = B_i(t) + \eta_b [G_i(t) - D_i(t)]_+ - \frac{[D_i(t) - G_i(t)]_+}{\eta_b}
+\]</span></p><p>subject to:</p>
+<p><span class="math display">\[
+0 \leq B_i(t) \leq B_{\text{max},i}
+\]</span></p><p>where:</p>
+
+<ul>
+<li><span class="math inline">\(\eta_b\)</span> is the battery round-trip efficiency</li>
+<li><span class="math inline">\([x]_+ = \max(0,x)\)</span></li>
+<li><span class="math inline">\(B_{\text{max},i}\)</span> is the battery capacity</li>
+</ul>
+
+<h3 id="2-2-market-mechanism">2.2 Market Mechanism</h3>
+
+<h4 id="2-2-1-available-trading-energy">2.2.1 Available Trading Energy</h4>
+
+<p>For each household <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>:</p>
+<p><span class="math display">\[
+E_i(t) = [G_i(t) + \frac{B_i(t)}{\Delta t} - D_i(t)]_+
+\]</span></p><p>where <span class="math inline">\(\Delta t\)</span> is the trading interval.</p>
+
+<h4 id="2-2-2-community-level-market-clearing">2.2.2 Community-Level Market Clearing</h4>
+
+<p>The community coordinator performs market clearing every <span class="math inline">\(\Delta t\)</span>:</p>
+
+<ol>
+<li>Aggregate Supply:</li>
+</ol>
+
+<p>$<span class="math inline">\(
+   S_j(t) = \sum_{i \in \mathcal{H}_j} E_i(t)
+   \)</span>$</p>
+
+<ol>
+<li>Aggregate Demand:</li>
+</ol>
+
+<p>$<span class="math inline">\(
+   D_j(t) = \sum_{i \in \mathcal{H}_j} [D_i(t) - G_i(t) - \frac{B_i(t)}{\Delta t}]_+
+   \)</span>$</p>
+
+<ol>
+<li>Market Clearing Price:
+$<span class="math inline">\(
+M_j(t) = \begin{cases}
+\lambda_{\text{base}} &amp; \text{if } S_j(t) \geq D_j(t) \\
+\lambda_{\text{base}} + \phi(D_j(t) - S_j(t)) &amp; \text{otherwise}
+\end{cases}
+\)</span>$</li>
+</ol>
+
+<p>where <span class="math inline">\(\phi(\cdot)\)</span> is a price adjustment function.</p>
+
+<h3 id="2-3-grid-integration">2.3 Grid Integration</h3>
+
+<h4 id="2-3-1-grid-import-export">2.3.1 Grid Import/Export</h4>
+
+<p>Net community power balance:</p>
+<p><span class="math display">\[
+P_j(t) = S_j(t) - D_j(t)
+\]</span></p><p>Grid interaction:</p>
+<p><span class="math display">\[
+G_{\text{net},j}(t) = \begin{cases}
+-P_j(t) &amp; \text{if } P_j(t) &lt; 0 \text{ (import)} \\
+\min(P_j(t), \kappa_{\text{export}}) &amp; \text{if } P_j(t) &gt; 0 \text{ (export)}
+\end{cases}
+\]</span></p>
+<h4 id="2-3-2-grid-station-load-management">2.3.2 Grid Station Load Management</h4>
+
+<p>For each grid station <span class="math inline">\(k\)</span>:</p>
+<p><span class="math display">\[
+\omega_k(t+1) = \omega_k(t) + \sum_{j \in \mathcal{C}_k} G_{\text{net},j}(t)
+\]</span></p><p>subject to:</p>
+<p><span class="math display">\[
+0 \leq \omega_k(t) \leq \kappa_k
+\]</span></p>
+<h3 id="2-4-solar-adoption-dynamics">2.4 Solar Adoption Dynamics</h3>
+
+<h4 id="2-4-1-adoption-probability">2.4.1 Adoption Probability</h4>
+
+<p>For non-adopting households (<span class="math inline">\(S_i = 0\)</span>), the probability of adoption at time <span class="math inline">\(t\)</span>:</p>
+<p><span class="math display">\[
+P(\text{adopt}_i(t)) = \alpha_i \cdot f(F_i) \cdot g(N_i(t)) \cdot h(R_i(t))
+\]</span></p><p>where:</p>
+
+<ul>
+<li><span class="math inline">\(f(F_i)\)</span> is the financial capacity factor</li>
+<li><span class="math inline">\(g(N_i(t))\)</span> is the neighborhood influence factor</li>
+<li><span class="math inline">\(h(R_i(t))\)</span> is the expected return factor</li>
+</ul>
+
+<h4 id="2-4-2-return-on-investment-calculation">2.4.2 Return on Investment Calculation</h4>
+
+<p>Expected ROI for household <span class="math inline">\(i\)</span>:</p>
+<p><span class="math display">\[
+R_i(t) = \frac{\sum_{\tau=t}^{t+T} \delta^\tau [\lambda_\tau G_i(\tau) - c_{\text{maintain}}]}{c_{\text{install}}}
+\]</span></p><p>where:</p>
+
+<ul>
+<li><span class="math inline">\(\delta\)</span> is the discount factor</li>
+<li><span class="math inline">\(T\)</span> is the planning horizon</li>
+<li><span class="math inline">\(c_{\text{maintain}}\)</span> is the maintenance cost</li>
+<li><span class="math inline">\(c_{\text{install}}\)</span> is the installation cost</li>
+</ul>
+
+<h2 id="3-performance-metrics">3. Performance Metrics</h2>
+
+<h3 id="3-1-energy-self-sufficiency-metrics">3.1 Energy Self-Sufficiency Metrics</h3>
+
+<h4 id="3-1-1-community-self-sufficiency-ratio-cssr">3.1.1 Community Self-Sufficiency Ratio (CSSR)</h4>
+
+<p>For community <span class="math inline">\(j\)</span> over time period <span class="math inline">\(T\)</span>:</p>
+<p><span class="math display">\[
+\text{CSSR}_j(T) = 1 - \frac{\sum_{t \in T} G_{\text{net},j}(t)^+}{\sum_{t \in T} \sum_{i \in \mathcal{H}_j} D_i(t)}
+\]</span></p><p>Target: <span class="math inline">\(\text{CSSR}_j(T) \geq 0.75\)</span> (75% self-sufficiency)</p>
+
+<h4 id="3-1-2-peak-import-reduction-pir">3.1.2 Peak Import Reduction (PIR)</h4>
+<p><span class="math display">\[
+\text{PIR}_j(T) = 1 - \frac{\max_{t \in T} G_{\text{net},j}(t)^+}{\max_{t \in T_0} G_{\text{net},j}(t)^+}
+\]</span></p><p>where <span class="math inline">\(T_0\)</span> is the baseline period.
+Target: <span class="math inline">\(\text{PIR}_j(T) \geq 0.50\)</span> (50% reduction in peak imports)</p>
+
+<h4 id="3-1-3-storage-utilization-factor-suf">3.1.3 Storage Utilization Factor (SUF)</h4>
+<p><span class="math display">\[
+\text{SUF}_j(T) = \frac{1}{|T|} \sum_{t \in T} \frac{\sum_{i \in \mathcal{H}_j} B_i(t)}{\sum_{i \in \mathcal{H}_j} B_{\text{max},i}}
+\]</span></p><p>Target: <span class="math inline">\(\text{SUF}_j(T) \geq 0.70\)</span> (70% average utilization)</p>
+
+<h3 id="3-2-solar-adoption-metrics">3.2 Solar Adoption Metrics</h3>
+
+<h4 id="3-2-1-solar-penetration-rate-spr">3.2.1 Solar Penetration Rate (SPR)</h4>
+<p><span class="math display">\[
+\text{SPR}_j(T) = \frac{\sum_{i \in \mathcal{H}_j} S_i(T)}{|\mathcal{H}_j|}
+\]</span></p><p>Target: Annual increase of 10 percentage points</p>
+
+<h4 id="3-2-2-solar-investment-return-sir">3.2.2 Solar Investment Return (SIR)</h4>
+<p><span class="math display">\[
+\text{SIR}_i(T) = \frac{\sum_{t \in T} [\lambda_t G_i(t) + M_j(t)E_i(t)]}{c_{\text{install},i}}
+\]</span></p><p>Target: <span class="math inline">\(\text{SIR}_i(T) \geq 1.5\)</span> for 80% of adopters</p>
+
+<h3 id="3-3-market-efficiency-metrics">3.3 Market Efficiency Metrics</h3>
+
+<h4 id="3-3-1-price-stability-index-psi">3.3.1 Price Stability Index (PSI)</h4>
+<p><span class="math display">\[
+\text{PSI}_j(T) = \frac{\sigma(\mathbf{M}_j(T))}{\mu(\mathbf{M}_j(T))}
+\]</span></p><p>Target: <span class="math inline">\(\text{PSI}_j(T) \leq 0.2\)</span> (low price volatility)</p>
+
+<h4 id="3-3-2-trading-volume-ratio-tvr">3.3.2 Trading Volume Ratio (TVR)</h4>
+<p><span class="math display">\[
+\text{TVR}_j(T) = \frac{\sum_{t \in T} \sum_{i \in \mathcal{H}_j} T_i(t)}{\sum_{t \in T} \sum_{i \in \mathcal{H}_j} D_i(t)}
+\]</span></p><p>Target: <span class="math inline">\(\text{TVR}_j(T) \geq 0.40\)</span> (40% of demand met through P2P trading)</p>
+
+<h2 id="4-simulation-scenarios">4. Simulation Scenarios</h2>
+
+<h3 id="4-1-baseline-scenarios">4.1 Baseline Scenarios</h3>
+
+<h4 id="4-1-1-current-state-s0">4.1.1 Current State (S0)</h4>
+
+<h5 id="experimental-design">Experimental Design</h5>
+
+<p><strong>Hypothesis</strong>: The current grid-only system leads to higher costs, inefficient energy distribution, and increased peak load stress on grid infrastructure.</p>
+
+<p><strong>Setup Parameters</strong>:</p>
+
+<ol>
+<li>Grid Configuration:</li>
+</ol>
+
+<pre><code class="language-python">grid_params = {
+    'base_capacity': 1_000_000,  # watts per community
+    'peak_capacity': 1_500_000,  # watts during high demand
+    'reliability': 0.995,        # uptime
+    'response_time': 0.1,        # hours
+    'maintenance_schedule': 'monthly'
+}
+</code></pre>
+
+<ol>
+<li>Pricing Structure:</li>
+</ol>
+
+<pre><code class="language-python">pricing_model = {
+    'base_rate': 0.12,          # $/kWh
+    'peak_rate': 0.20,          # $/kWh
+    'time_of_use': {
+        'peak_hours': [14, 15, 16, 17, 18, 19],
+        'shoulder_hours': [9, 10, 11, 12, 13, 20, 21],
+        'off_peak_hours': [0, 1, 2, 3, 4, 5, 6, 7, 8, 22, 23]
+    },
+    'demand_charge': 10.00      # $/kW for monthly peak
+}
+</code></pre>
+
+<ol>
+<li>Household Energy Profile:</li>
+</ol>
+
+<pre><code class="language-python">household_profile = {
+    'avg_daily_consumption': 30,  # kWh
+    'peak_consumption': 5,        # kW
+    'load_factor': 0.65,
+    'seasonal_variation': {
+        'summer': 1.3,
+        'winter': 1.2,
+        'spring': 1.0,
+        'fall': 1.0
+    }
+}
+</code></pre>
+
+<h5 id="implementation-parameters">Implementation Parameters</h5>
+
+<ol>
+<li>Time Series Configuration:</li>
+</ol>
+
+<pre><code class="language-python">simulation_params = {
+    'timestep': 0.25,           # 15-minute intervals
+    'duration': 8760,           # hours (1 year)
+    'weather_data': 'TMY3',     # typical meteorological year
+    'load_resolution': 'hourly'
+}
+</code></pre>
+
+<ol>
+<li>Grid Interaction Model:</li>
+</ol>
+
+<pre><code class="language-python">grid_interaction = {
+    'ramp_rate': 100_000,       # watts per hour
+    'min_load': 0.20,           # fraction of capacity
+    'spinning_reserve': 0.15,    # fraction of capacity
+    'outage_probability': 0.001  # per hour
+}
+</code></pre>
+
+<h5 id="success-criteria">Success Criteria</h5>
+
+<ol>
+<li>Grid Stability:</li>
+</ol>
+
+<ul>
+<li>Power quality deviation ≤ 5%</li>
+<li>Voltage fluctuation ≤ 3%</li>
+<li>Frequency stability ≥ 99.9%</li>
+</ul>
+
+<ol>
+<li>Economic Performance:</li>
+</ol>
+
+<ul>
+<li>Average household energy cost ≤ $150/month</li>
+<li>Peak demand charges ≤ 15% of total bill</li>
+<li>System costs recovery ≥ 98%</li>
+</ul>
+
+<ol>
+<li>Reliability Metrics:</li>
+</ol>
+
+<ul>
+<li>SAIDI ≤ 100 minutes/year</li>
+<li>SAIFI ≤ 1.1 interruptions/year</li>
+<li>CAIDI ≤ 90 minutes/interruption</li>
+</ul>
+
+<h4 id="4-1-2-basic-p2p-s1">4.1.2 Basic P2P (S1)</h4>
+
+<h5 id="experimental-design-1">Experimental Design</h5>
+
+<p><strong>Hypothesis</strong>: Enabling P2P trading with basic battery storage will reduce grid dependence and energy costs while improving local energy utilization.</p>
+
+<p><strong>Setup Parameters</strong>:</p>
+
+<ol>
+<li>P2P Trading Configuration:</li>
+</ol>
+
+<pre><code class="language-python">p2p_params = {
+    'market_clearing_interval': 0.25,  # hours
+    'min_trade_quantity': 0.1,         # kWh
+    'max_price_spread': 0.05,          # $/kWh
+    'transaction_fee': 0.01,           # $/kWh
+    'settlement_period': 24            # hours
+}
+</code></pre>
+
+<ol>
+<li>Battery Storage System:</li>
+</ol>
+
+<pre><code class="language-python">storage_params = {
+    'capacity_per_household': 10,      # kWh
+    'power_rating': 5,                 # kW
+    'round_trip_efficiency': 0.92,
+    'degradation_rate': 0.02,          # annual
+    'min_state_of_charge': 0.10,
+    'max_state_of_charge': 0.90,
+    'initial_cost': 7000,              # $
+    'warranty_period': 10              # years
+}
+</code></pre>
+
+<ol>
+<li>Trading Algorithm:</li>
+</ol>
+
+<pre><code class="language-python">trading_algorithm = {
+    'matching_strategy': 'price_priority',
+    'bid_validity': 1,                 # hours
+    'min_seller_price': 0.08,          # $/kWh
+    'max_buyer_price': 0.15,           # $/kWh
+    'price_increment': 0.001,          # $/kWh
+    'order_book_depth': 100
+}
+</code></pre>
+
+<h5 id="implementation-parameters-1">Implementation Parameters</h5>
+
+<ol>
+<li>Market Operation:</li>
+</ol>
+
+<pre><code class="language-python">market_params = {
+    'opening_hours': list(range(24)),
+    'min_participants': 10,
+    'max_order_size': 5,               # kWh
+    'price_discovery': 'continuous_double_auction',
+    'settlement_currency': 'USD',
+    'credit_requirement': 100          # $
+}
+</code></pre>
+
+<ol>
+<li>Energy Exchange Rules:</li>
+</ol>
+
+<pre><code class="language-python">exchange_rules = {
+    'max_distance': 5,                 # km
+    'line_losses': 0.03,              # per km
+    'congestion_management': 'dynamic_pricing',
+    'emergency_protocols': ['load_shedding', 'price_caps'],
+    'dispute_resolution': 'automated_mediation'
+}
+</code></pre>
+
+<h5 id="success-criteria-1">Success Criteria</h5>
+
+<ol>
+<li>Trading Performance:</li>
+</ol>
+
+<ul>
+<li>Market participation ≥ 40% of households</li>
+<li>Trading volume ≥ 20% of total consumption</li>
+<li>Price volatility ≤ 15% daily variation</li>
+<li>Settlement success rate ≥ 99%</li>
+</ul>
+
+<ol>
+<li>Storage Utilization:</li>
+</ol>
+
+<ul>
+<li>Battery cycling ≥ 250 cycles/year</li>
+<li>Average depth of discharge ≤ 60%</li>
+<li>Storage efficiency ≥ 85%</li>
+<li>Cost recovery period ≤ 7 years</li>
+</ul>
+
+<ol>
+<li>Grid Impact:</li>
+</ol>
+
+<ul>
+<li>Peak load reduction ≥ 20%</li>
+<li>Grid import reduction ≥ 30%</li>
+<li>Local energy utilization ≥ 50%</li>
+<li>Grid power factor ≥ 0.95</li>
+</ul>
+
+<ol>
+<li>Economic Benefits:</li>
+</ol>
+
+<ul>
+<li>Average cost savings ≥ 15%</li>
+<li>ROI on storage ≥ 12% annually</li>
+<li>Trading profits ≥ $0.02/kWh</li>
+<li>System payback ≤ 6 years</li>
+</ul>
+
+<h3 id="4-2-advanced-scenarios">4.2 Advanced Scenarios</h3>
+
+<h4 id="4-2-1-incentivized-adoption-s2">4.2.1 Incentivized Adoption (S2)</h4>
+
+<h5 id="experimental-design-2">Experimental Design</h5>
+
+<p><strong>Hypothesis</strong>: Dynamic incentives combined with social influence modeling will accelerate solar adoption rates and improve system-wide efficiency.</p>
+
+<p><strong>Setup Parameters</strong>:</p>
+
+<ol>
+<li>Incentive Structure:</li>
+</ol>
+
+<pre><code class="language-python">incentive_params = {
+    'base_subsidy': 5000,              # $ per installation
+    'performance_bonus': 0.03,         # $/kWh generated
+    'early_adopter_bonus': 2000,       # $ for first 20% adopters
+    'referral_reward': 500,            # $ per successful referral
+    'community_milestone_bonus': {
+        '25%_adoption': 10000,         # community-wide bonus
+        '50%_adoption': 25000,
+        '75%_adoption': 50000
+    }
+}
+</code></pre>
+
+<ol>
+<li>Social Influence Model:</li>
+</ol>
+
+<pre><code class="language-python">social_dynamics = {
+    'influence_radius': 0.5,           # km
+    'visibility_factor': 0.8,          # impact of visible installations
+    'social_network': {
+        'avg_connections': 12,         # per household
+        'influence_weight': 0.3,       # peer effect strength
+        'information_spread_rate': 0.1  # per month
+    },
+    'adoption_thresholds': {
+        'innovators': 0.1,             # adoption probability
+        'early_adopters': 0.2,
+        'early_majority': 0.3,
+        'late_majority': 0.4,
+        'laggards': 0.5
+    }
+}
+</code></pre>
+
+<ol>
+<li>Progressive Pricing:</li>
+</ol>
+
+<pre><code class="language-python">progressive_pricing = {
+    'tiers': {
+        'tier1': {'threshold': 300, 'rate': 0.10},  # kWh, $/kWh
+        'tier2': {'threshold': 600, 'rate': 0.15},
+        'tier3': {'threshold': 1000, 'rate': 0.20},
+        'tier4': {'threshold': float('inf'), 'rate': 0.25}
+    },
+    'solar_sellback_rate': 0.12,       # $/kWh
+    'peak_demand_multiplier': 1.5,
+    'green_energy_premium': 0.02       # $/kWh
+}
+</code></pre>
+
+<h5 id="implementation-parameters-2">Implementation Parameters</h5>
+
+<ol>
+<li>Battery Enhancement:</li>
+</ol>
+
+<pre><code class="language-python">enhanced_storage = {
+    'capacity': 20,                    # kWh
+    'power_rating': 10,                # kW
+    'chemistry': 'lithium_iron_phosphate',
+    'smart_features': {
+        'weather_forecast_integration': True,
+        'demand_prediction': True,
+        'price_optimization': True,
+        'grid_services_enabled': True
+    },
+    'warranty_extension': 5            # additional years
+}
+</code></pre>
+
+<h5 id="success-criteria-2">Success Criteria</h5>
+
+<ol>
+<li>Adoption Metrics:</li>
+</ol>
+
+<ul>
+<li>Monthly adoption rate ≥ 2%</li>
+<li>Peer influence conversions ≥ 30%</li>
+<li>Community milestone achievement ≤ 24 months</li>
+<li>Installation quality score ≥ 90%</li>
+</ul>
+
+<ol>
+<li>Financial Impact:</li>
+</ol>
+
+<ul>
+<li>Average payback period ≤ 5 years</li>
+<li>Incentive utilization rate ≥ 80%</li>
+<li>Community-wide energy cost reduction ≥ 25%</li>
+<li>Program cost-effectiveness ratio ≥ 1.5</li>
+</ul>
+
+<ol>
+<li>System Performance:</li>
+</ol>
+
+<ul>
+<li>Enhanced storage utilization ≥ 90%</li>
+<li>Smart feature engagement ≥ 75%</li>
+<li>Grid service revenue ≥ $100/month/household</li>
+<li>System uptime ≥ 99.9%</li>
+</ul>
+
+<h4 id="4-2-2-grid-stress-test-s3">4.2.2 Grid Stress Test (S3)</h4>
+
+<h5 id="experimental-design-3">Experimental Design</h5>
+
+<p><strong>Hypothesis</strong>: A resilient community energy network can maintain stability and service quality during extreme conditions through coordinated local response.</p>
+
+<p><strong>Setup Parameters</strong>:</p>
+
+<ol>
+<li>Grid Disturbance Scenarios:</li>
+</ol>
+
+<pre><code class="language-python">disturbance_events = {
+    'planned_outages': {
+        'frequency': 4,                # per year
+        'duration': 4,                 # hours
+        'notice_period': 48            # hours
+    },
+    'weather_events': {
+        'extreme_heat': {
+            'temperature': 40,         # °C
+            'duration': 72,            # hours
+            'probability': 0.1         # annual
+        },
+        'storms': {
+            'wind_speed': 100,         # km/h
+            'duration': 24,            # hours
+            'probability': 0.2         # annual
+        }
+    },
+    'equipment_failures': {
+        'transformer': 0.01,           # annual probability
+        'distribution_line': 0.05,
+        'substation': 0.005
+    }
+}
+</code></pre>
+
+<ol>
+<li>Demand Surge Model:</li>
+</ol>
+
+<pre><code class="language-python">demand_surge = {
+    'peak_multiplier': 2.0,            # vs normal peak
+    'ramp_rate': 0.2,                 # per hour
+    'duration_distribution': {
+        'mean': 3,                     # hours
+        'std_dev': 1
+    },
+    'spatial_correlation': 0.7         # between nearby households
+}
+</code></pre>
+
+<ol>
+<li>Emergency Response:</li>
+</ol>
+
+<pre><code class="language-python">emergency_protocols = {
+    'load_priority_levels': {
+        'critical': ['medical', 'safety'],
+        'essential': ['refrigeration', 'HVAC'],
+        'normal': ['general_purpose'],
+        'discretionary': ['entertainment']
+    },
+    'response_times': {
+        'automatic': 0.1,              # seconds
+        'fast': 60,                    # seconds
+        'standard': 300                # seconds
+    },
+    'islanding_capability': {
+        'detection_time': 0.05,        # seconds
+        'switching_time': 0.1,         # seconds
+        'minimum_load': 0.3            # fraction of normal
+    }
+}
+</code></pre>
+
+<h5 id="success-criteria-3">Success Criteria</h5>
+
+<ol>
+<li>Resilience Metrics:</li>
+</ol>
+
+<ul>
+<li>Critical load uptime ≥ 99.99%</li>
+<li>Recovery time ≤ 2 hours</li>
+<li>Load preservation ≥ 60% during events</li>
+<li>Islanding success rate ≥ 95%</li>
+</ul>
+
+<ol>
+<li>Grid Stability:</li>
+</ol>
+
+<ul>
+<li>Frequency deviation ≤ 0.5 Hz</li>
+<li>Voltage compliance ≥ 98%</li>
+<li>Power quality THD ≤ 5%</li>
+<li>Protection system reliability ≥ 99.9%</li>
+</ul>
+
+<ol>
+<li>Economic Impact:</li>
+</ol>
+
+<ul>
+<li>Emergency operation cost ≤ 200% normal</li>
+<li>Critical service maintenance ≥ 90%</li>
+<li>Insurance claim reduction ≥ 40%</li>
+<li>Recovery cost optimization ≥ 25%</li>
+</ul>
+
+<ol>
+<li>Community Response:</li>
+</ol>
+
+<ul>
+<li>Response time compliance ≥ 95%</li>
+<li>Communication effectiveness ≥ 90%</li>
+<li>Resource allocation efficiency ≥ 85%</li>
+<li>Community satisfaction ≥ 80%</li>
+</ul>
+
+<h4 id="4-2-4-behind-the-meter-vs-community-solar-s4">4.2.4 Behind-the-Meter vs Community Solar (S4)</h4>
+
+<h5 id="experimental-design-4">Experimental Design</h5>
+
+<p><strong>Hypothesis</strong>: Community-owned solar installations achieve higher participation rates and better energy distribution compared to individual behind-the-meter installations, particularly among financially constrained households.</p>
+
+<p><strong>Setup Parameters</strong>:</p>
+
+<ol>
+<li>Behind-the-Meter (BTM) Configuration:</li>
+</ol>
+
+<pre><code>- Individual installation cost: $c_{install} = \$15,000-25,000$
+- Maintenance cost: $c_{maintain} = \$200/year$
+- Generation efficiency: $\eta_{individual} = 0.85$
+- Installation capacity: 5-10 kW per household
+</code></pre>
+
+<ol>
+<li>Community Solar Configuration:</li>
+</ol>
+
+<pre><code>- Total installation cost: $C_{install} = \$200,000-400,000$
+- Per-household buy-in: $c_{buy-in} = C_{install}/n_{participants}$
+- Shared maintenance: $c_{maintain,shared} = \$2,000/year$
+- Generation efficiency: $\eta_{community} = 0.90$
+- Installation capacity: 100-200 kW total
+</code></pre>
+
+<p><strong>Participation Model</strong>:</p>
+
+<p>For household <span class="math inline">\(i\)</span>, participation probability in community solar:</p>
+<p><span class="math display">\[
+P(\text{participate}_i) = f(F_i, \Delta E_i, c_{buy-in})
+\]</span></p><p>where:</p>
+
+<ul>
+<li><span class="math inline">\(F_i\)</span> is household financial capacity</li>
+<li><span class="math inline">\(\Delta E_i\)</span> is predicted energy savings</li>
+<li><span class="math inline">\(c_{buy-in}\)</span> is the community solar buy-in cost</li>
+</ul>
+
+<p><strong>Investment Decision Model</strong>:</p>
+
+<p>BTM adoption threshold:</p>
+<p><span class="math display">\[
+\text{BTM}_{\text{adopt},i} = \begin{cases}
+1 &amp; \text{if } F_i \geq c_{install} \text{ AND } \text{ROI}_i \geq r_{min} \\
+0 &amp; \text{otherwise}
+\end{cases}
+\]</span></p><p>Community solar participation threshold:</p>
+<p><span class="math display">\[
+\text{CS}_{\text{participate},i} = \begin{cases}
+1 &amp; \text{if } F_i \geq c_{buy-in} \text{ AND } \text{ROI}_i \geq r_{min} \\
+0 &amp; \text{otherwise}
+\end{cases}
+\]</span></p>
+<h5 id="specific-metrics">Specific Metrics</h5>
+
+<ol>
+<li>Financial Accessibility Ratio (FAR):</li>
+</ol>
+
+<p>$<span class="math inline">\(
+   \text{FAR}_{\text{method}} = \frac{\sum_{i \in \mathcal{H}} \mathbb{1}[F_i \geq c_{\text{method}}]}{|\mathcal{H}|}
+   \)</span>$</p>
+
+<ol>
+<li>Energy Distribution Equity (EDE):</li>
+</ol>
+
+<p>$<span class="math inline">\(
+   \text{EDE} = 1 - \text{Gini}(\{\Delta E_i\}_{i \in \mathcal{H}})
+   \)</span>$</p>
+
+<ol>
+<li>System Efficiency Ratio (SER):</li>
+</ol>
+
+<p>$<span class="math inline">\(
+   \text{SER} = \frac{\sum_{t} G_{\text{community}}(t)}{\sum_{t} \sum_{i} G_{\text{individual},i}(t)}
+   \)</span>$</p>
+
+<ol>
+<li>Cost-Benefit Distribution (CBD):
+$<span class="math inline">\(
+\text{CBD}_i = \frac{\Delta E_i/E_i}{c_i/F_i}
+\)</span>$</li>
+</ol>
+
+<h5 id="implementation-parameters-3">Implementation Parameters</h5>
+
+<ol>
+<li>Community Solar Structure:</li>
+</ol>
+
+<pre><code class="language-python">community_solar = {
+    'capacity': 150_000,  # watts
+    'panel_efficiency': 0.90,
+    'inverter_efficiency': 0.98,
+    'degradation_rate': 0.005,  # annual
+    'maintenance_schedule': 'quarterly',
+    'ownership_model': 'proportional',
+    'minimum_buy_in': 0.01  # 1% ownership
+}
+</code></pre>
+
+<ol>
+<li>Behind-the-Meter Structure:</li>
+</ol>
+
+<pre><code class="language-python">btm_solar = {
+    'min_capacity': 5_000,  # watts
+    'max_capacity': 10_000,  # watts
+    'panel_efficiency': 0.85,
+    'inverter_efficiency': 0.96,
+    'degradation_rate': 0.007,  # annual
+    'maintenance_schedule': 'annual',
+    'financing_options': ['cash', 'loan', 'lease']
+}
+</code></pre>
+
+<h5 id="success-criteria-4">Success Criteria</h5>
+
+<ol>
+<li>Participation Rate:</li>
+</ol>
+
+<ul>
+<li>Community Solar: ≥ 60% of eligible households</li>
+<li>BTM: ≥ 20% of eligible households</li>
+</ul>
+
+<ol>
+<li>Energy Equity:</li>
+</ol>
+
+<ul>
+<li>Gini coefficient of energy distribution ≤ 0.3</li>
+<li>Cost-benefit ratio variance ≤ 0.2</li>
+</ul>
+
+<ol>
+<li>Financial Performance:</li>
+</ol>
+
+<ul>
+<li>ROI ≥ 15% over 10 years for both models</li>
+<li>Payback period ≤ 8 years</li>
+</ul>
+
+<ol>
+<li>System Performance:</li>
+</ol>
+
+<ul>
+<li>System Efficiency Ratio ≥ 1.15</li>
+<li>Capacity factor ≥ 0.22</li>
+</ul>
+</article>
+	</body>
+</html>

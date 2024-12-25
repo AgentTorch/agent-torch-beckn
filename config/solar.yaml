@@ -1,0 +1,175 @@
+simulation:
+  steps: 12 # 1 year in months
+
+environment:
+  grid_price:
+    type: float
+    value: 0.12 # $/kWh
+  current_month:
+    type: int
+    value: 0
+  installation_cost:
+    type: float
+    value: 15000.0 # $ per household
+  maintenance_cost:
+    type: float
+    value: 200.0 # $ per year
+
+agents:
+  household:
+    count: 100
+    properties:
+      id: int
+      community_id: int
+      demand_profile: array, 12, float # Monthly demand profile
+      has_solar: boolean
+      generation_capacity: array, 12, float # Monthly kW
+      battery_capacity: float # kWh
+      battery_charge: float # Current charge
+      excess_energy: float # Available for trading
+      financial_capacity: float # $
+      adoption_propensity: float # [0,1]
+      neighbor_adoption: array, 10, bool # Solar adoption status of 10 nearest neighbors
+      expected_roi: float # Expected return on investment
+      grid_consumption: float # Energy drawn from grid
+
+  community_coordinator:
+    count: 5
+    properties:
+      id: int
+      household_ids: array, 20, int # Assuming 20 households per community
+      market_price: float # Current market clearing price
+      power_balance: float # Community-wide power balance
+      distribution_efficiency: float # [0,1]
+      grid_station_id: int # Connected grid station
+
+  grid_station:
+    count: 2
+    properties:
+      id: int
+      max_capacity: float # Maximum supply capacity
+      current_load: float # Current load
+      reliability: float # Grid reliability factor
+      dynamic_price: float # Current dynamic price
+      community_ids: array, 3, int # Connected communities
+
+substeps:
+  - name: 'simulate_solar_generation'
+    agent: 'household'
+    observation:
+      name: calculate_generation
+      func: CalculateSolarGeneration
+      observes:
+        - 'household/has_solar'
+        - 'household/generation_capacity'
+      produces:
+        - 'generated_power'
+    action:
+      name: update_battery_storage
+      func: UpdateBatteryStorage
+      requires:
+        - 'household/battery_capacity'
+        - 'household/battery_charge'
+        - 'household/demand_profile'
+      decides:
+        - 'battery_charge'
+        - 'excess_energy'
+    transition:
+      name: update_household_state
+      func: UpdateHouseholdState
+      updates:
+        - 'household/battery_charge'
+        - 'household/excess_energy'
+
+  - name: 'market_clearing'
+    agent: 'community_coordinator'
+    observation:
+      name: aggregate_energy
+      func: AggregateEnergy
+      observes:
+        - 'household/excess_energy'
+        - 'household/demand_profile'
+        - 'community_coordinator/household_ids'
+        - 'community_coordinator/grid_station_id'
+        - 'grid_station/dynamic_price'
+      produces:
+        - 'total_supply'
+        - 'total_demand'
+        - 'household_demand'
+        - 'community_grid_prices'
+    action:
+      name: clear_market
+      func: ClearMarket
+      requires:
+        - 'environment/grid_price'
+        - 'community_coordinator/distribution_efficiency'
+      decides:
+        - 'market_price'
+        - 'power_balance'
+        - 'grid_consumption'
+    transition:
+      name: update_market_state
+      func: UpdateMarketState
+      updates:
+        - 'household/grid_consumption'
+        - 'community_coordinator/market_price'
+        - 'community_coordinator/power_balance'
+
+  - name: 'grid_integration'
+    agent: 'grid_station'
+    observation:
+      name: monitor_grid_status
+      func: MonitorGridStatus
+      observes:
+        - 'grid_station/current_load'
+        - 'grid_station/max_capacity'
+        - 'grid_station/reliability'
+        - 'community_coordinator/power_balance'
+      produces:
+        - 'grid_stability'
+        - 'available_capacity'
+    action:
+      name: adjust_grid_supply
+      func: AdjustGridSupply
+      requires:
+        - 'grid_station/dynamic_price'
+        - 'environment/grid_price'
+      decides:
+        - 'grid_supply'
+        - 'updated_price'
+    transition:
+      name: update_grid_state
+      func: UpdateGridState
+      updates:
+        - 'grid_station/current_load'
+        - 'grid_station/dynamic_price'
+
+  - name: 'solar_adoption'
+    agent: 'household'
+    observation:
+      name: evaluate_solar_potential
+      func: EvaluateSolarPotential
+      observes:
+        - 'household/financial_capacity'
+        - 'household/demand_profile'
+        - 'household/grid_consumption'
+        - 'household/neighbor_adoption'
+        - 'environment/installation_cost'
+        - 'environment/maintenance_cost'
+      produces:
+        - 'adoption_metrics'
+    action:
+      name: make_adoption_decision
+      func: MakeAdoptionDecision
+      requires:
+        - 'household/adoption_propensity'
+        - 'household/expected_roi'
+        - 'household/has_solar'
+      decides:
+        - 'adoption_decision'
+    transition:
+      name: update_adoption_state
+      func: UpdateAdoptionState
+      updates:
+        - 'household/has_solar'
+        - 'household/financial_capacity'
