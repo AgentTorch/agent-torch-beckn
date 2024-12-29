@@ -74,7 +74,7 @@ class ClearMarket(SubstepAction):
 class UpdateMarketState(SubstepTransition):
     def forward(self, state, action):
         return {
-            'grid_consumption': action['community_coordinator']['grid_consumption'],
-            'market_price': action['community_coordinator']['market_price'],
-            'power_balance': action['community_coordinator']['power_balance'],
+            'grid_consumption': action['community']['grid_consumption'],
+            'market_price': action['community']['market_price'],
+            'power_balance': action['community']['power_balance'],
         }

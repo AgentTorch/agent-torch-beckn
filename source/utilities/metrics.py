@@ -17,24 +17,20 @@ def get_agent_data(state, agent_type, field):
 
 # 3.1.1 Community Self-Sufficiency Ratio (CSR)
 def calculate_csr(state):
-    communities = get_agent_data(state, 'community_coordinator', 'id')
-    power_balance = get_agent_data(state, 'community_coordinator', 'power_balance')
-    household_ids = get_agent_data(state, 'community_coordinator', 'household_ids')
+    communities = get_agent_data(state, 'community', 'id')
+    power_balance = get_agent_data(state, 'community', 'power_balance')
+    household_ids = get_agent_data(state, 'community', 'household_ids')
     demand_profile = get_agent_data(state, 'household', 'demand_profile')
     
     csr_values = {}
     for c_id in range(len(communities)):
-        # Get households in this community
-        valid_households = household_ids[c_id][household_ids[c_id] > 0] - 1  # Convert to 0-based index
+        valid_households = household_ids[c_id][household_ids[c_id] > 0] - 1
         
-        # Calculate total demand for community
         community_demand = torch.sum(demand_profile[valid_households])
-        
-        # Calculate grid imports (positive power_balance means excess, negative means import)
         grid_imports = torch.clamp(-1 * power_balance[c_id], min=0)
         
         # Calculate csr
-        csr = 1 - (grid_imports / community_demand)
+        csr = 1 - (grid_imports / community_demand) if community_demand > 0 else torch.tensor(0.0)
         csr_values[f'community_{c_id}'] = csr.item()
 
     return csr_values
@@ -44,7 +40,6 @@ def calculate_pir(state):
     grid_load = get_agent_data(state, 'grid_station', 'current_load')
     max_capacity = get_agent_data(state, 'grid_station', 'max_capacity')
     
-    # Calculate peak import reduction relative to maximum capacity
     peak_imports = torch.max(grid_load, dim=0).values
     pir = 1 - (peak_imports / max_capacity)
     
@@ -65,7 +60,7 @@ def calculate_suf(state):
         comm_capacity = battery_capacity[comm_mask]
         
         # Calculate average utilization
-        suf = torch.mean(comm_charge / comm_capacity)
+        suf = torch.mean(comm_charge / comm_capacity) if comm_capacity.sum() > 0 else 0
         suf_values[f'community_{comm.item()}'] = suf.item()
         
     return suf_values
@@ -85,7 +80,7 @@ def calculate_spr(state):
         solar_count = torch.sum(has_solar[comm_mask].float())
         total_households = torch.sum(comm_mask.float())
         
-        spr = solar_count / total_households
+        spr = solar_count / total_households if total_households > 0 else 0
         spr_values[f'community_{comm.item()}'] = spr.item()
         
     return spr_values
@@ -97,36 +92,31 @@ def calculate_sir(state):
     financial_capacity = get_agent_data(state, 'household', 'financial_capacity')
     installation_cost = state['environment']['installation_cost']
     
-    # Only calculate for households with solar
     solar_mask = has_solar == 1
-    
-    # Calculate revenue (simplified - using current grid price as baseline)
     grid_price = state['environment']['grid_price']
     annual_generation = generation_capacity.squeeze().sum()
     annual_revenue = annual_generation * grid_price
     
-    # Calculate SIR
     sir = torch.where(
         solar_mask,
-        annual_revenue / installation_cost,
+        annual_revenue / installation_cost if installation_cost > 0 else 0,
         torch.zeros_like(annual_revenue)
     )
     
-    # Calculate percentage of adopters meeting target
     adopters_count = torch.sum(solar_mask.float())
     successful_count = torch.sum((sir >= 1.5).float() * solar_mask.float())
     success_rate = successful_count / adopters_count if adopters_count > 0 else 0
     
     return {
-        'average_sir': torch.mean(sir[solar_mask]).item(),
-        'success_rate': success_rate.item()
+        'average_sir': torch.mean(sir[solar_mask]).item() if torch.sum(solar_mask) > 0 else 0,
+        'success_rate': success_rate
     }
 
 # ----- 3.3 Market Efficiency Metrics -----
 
 # 3.3.1 Price Stability Index (PSI)
 def calculate_psi(state):
-    market_price = get_agent_data(state, 'community_coordinator', 'market_price')
+    market_price = get_agent_data(state, 'community', 'market_price')
     
     psi_values = {}
     for i in range(len(market_price)):
@@ -178,13 +168,13 @@ def calculate_metrics(state):
 
     # Store them in a dict
     metrics = {
-      '(csr) community self sufficiency ratio': csr,
-      '(pir) peak import reduction': pir,
-      '(suf) storage utilization factor': suf,
-      '(spf) solar penetration factor': spr,
-      '(sir) solar investment returns': sir,
-      '(psi) price stability index': psi,
-      '(tvr) trading volume ratio': tvr,
+      '(csr) community self sufficiency ratio': {}, # csr,
+      '(pir) peak import reduction': {}, # pir,
+      '(suf) storage utilization factor': {}, # suf,
+      '(spf) solar penetration factor': {}, # spr,
+      '(sir) solar investment returns': {}, # sir,
+      '(psi) price stability index': {}, # psi,
+      '(tvr) trading volume ratio': {}, # tvr,
     }
     
     # Add overall performance indicators

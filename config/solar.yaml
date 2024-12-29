@@ -1,64 +1,66 @@
 simulation:
-  steps: 12 # 1 year in months
+  steps: 12
 
 environment:
-  grid_price:
-    type: float
-    value: 0.12 # $/kWh
   current_month:
     type: int
     value: 0
+  distribution_efficiency:
+    type: float
+    value: 0.9
+  grid_price:
+    type: float
+    value: 0.12
   installation_cost:
     type: float
-    value: 15000.0 # $ per household
+    value: 15000.0
   maintenance_cost:
     type: float
-    value: 200.0 # $ per year
+    value: 200.0
 
 agents:
   household:
-    count: 100
+    count: 2880
     properties:
       id: int
+      location: array, 2, float
       community_id: int
-      demand_profile: array, 12, float # Monthly demand profile
+      demand_profile: array, 12, float
+      financial_capacity: float
+      generation_capacity: array, 12, float
+      battery_capacity: float
+      battery_charge: float
+      grid_consumption: float
+      excess_energy: float
       has_solar: boolean
-      generation_capacity: array, 12, float # Monthly kW
-      battery_capacity: float # kWh
-      battery_charge: float # Current charge
-      excess_energy: float # Available for trading
-      financial_capacity: float # $
-      adoption_propensity: float # [0,1]
-      neighbor_adoption: array, 10, bool # Solar adoption status of 10 nearest neighbors
-      expected_roi: float # Expected return on investment
-      grid_consumption: float # Energy drawn from grid
-
-  community_coordinator:
-    count: 5
+      neighbor_adoption: array, 10, bool
+      adoption_propensity: float
+      expected_roi: float
+      
+  community:
+    count: 144
     properties:
       id: int
-      household_ids: array, 20, int # Assuming 20 households per community
-      market_price: float # Current market clearing price
-      power_balance: float # Community-wide power balance
-      distribution_efficiency: float # [0,1]
-      grid_station_id: int # Connected grid station
+      grid_station_id: int
+      household_ids: array, 20, int
+      market_price: float
+      power_balance: float
 
   grid_station:
-    count: 2
+    count: 30
     properties:
       id: int
-      max_capacity: float # Maximum supply capacity
-      current_load: float # Current load
-      reliability: float # Grid reliability factor
-      dynamic_price: float # Current dynamic price
-      community_ids: array, 3, int # Connected communities
+      max_capacity: float
+      current_load: float
+      dynamic_price: float
+      reliability: float
 
 substeps:
-  - name: 'simulate_solar_generation'
-    agent: 'household'
+  - name: simulate_solar_generation
+    agent: household
     observation:
-      name: calculate_generation
       func: CalculateSolarGeneration
+      name: calculate_generation
       observes:
         - 'household/has_solar'
         - 'household/generation_capacity'
@@ -82,15 +84,15 @@ substeps:
         - 'household/excess_energy'
 
   - name: 'market_clearing'
-    agent: 'community_coordinator'
+    agent: 'community'
     observation:
       name: aggregate_energy
       func: AggregateEnergy
       observes:
         - 'household/excess_energy'
         - 'household/demand_profile'
-        - 'community_coordinator/household_ids'
-        - 'community_coordinator/grid_station_id'
+        - 'community/household_ids'
+        - 'community/grid_station_id'
         - 'grid_station/dynamic_price'
       produces:
         - 'total_supply'
@@ -102,7 +104,7 @@ substeps:
       func: ClearMarket
       requires:
         - 'environment/grid_price'
-        - 'community_coordinator/distribution_efficiency'
+        - 'environment/distribution_efficiency'
       decides:
         - 'market_price'
         - 'power_balance'
@@ -112,8 +114,8 @@ substeps:
       func: UpdateMarketState
       updates:
         - 'household/grid_consumption'
-        - 'community_coordinator/market_price'
-        - 'community_coordinator/power_balance'
+        - 'community/market_price'
+        - 'community/power_balance'
 
   - name: 'grid_integration'
     agent: 'grid_station'
@@ -124,7 +126,7 @@ substeps:
         - 'grid_station/current_load'
         - 'grid_station/max_capacity'
         - 'grid_station/reliability'
-        - 'community_coordinator/power_balance'
+        - 'community/power_balance'
       produces:
         - 'grid_stability'
         - 'available_capacity'
@@ -153,6 +155,7 @@ substeps:
         - 'household/financial_capacity'
         - 'household/demand_profile'
         - 'household/grid_consumption'
+        - 'household/location'
         - 'household/neighbor_adoption'
         - 'environment/installation_cost'
         - 'environment/maintenance_cost'
@@ -172,4 +175,6 @@ substeps:
       func: UpdateAdoptionState
       updates:
         - 'household/has_solar'
+        - 'household/location'
         - 'household/financial_capacity'
+        - 'household/neighbor_adoption'
